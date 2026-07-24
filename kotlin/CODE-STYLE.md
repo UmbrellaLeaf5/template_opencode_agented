@@ -1,13 +1,13 @@
-# CODE-STYLE
+# CODE-STYLE.md
 
-All code-writing rules for terraaero backend.
+All code-writing rules for Kotlin projects.
 
 ---
 
-## Indentation & layout
+## Indentation & Layout
 
-- **2-space indentation** everywhere (Kotlin, YAML, TPL).
-- **Line length**: 100 characters (see `.editorconfig`).
+- **2-space indentation** everywhere (Kotlin, Gradle/KTS, JSON, TOML, YAML, Markdown, all config files).
+- **Line length**: 100 characters.
 - **Hanging indentation** for long signatures and calls:
 
   ```kotlin
@@ -19,14 +19,14 @@ All code-writing rules for terraaero backend.
   }
   ```
 
-- Formatting is governed by `.editorconfig`. No separate formatter CLI is required — IntelliJ IDEA with the Kotlin plugin reads `.editorconfig` natively.
+- Formatting is governed by `.editorconfig`. No separate formatter CLI is required — IntelliJ IDEA with the Kotlin plugin reads `.editorconfig` natively and applies formatting on save/reformat.
 
-## Language usage
+## Language Usage
 
-- **NEVER use `!!`** (non-null assertion). Use dedicated wrapper functions from `shared/util/ToNotNullOrThrow.kt` instead:
+- **NEVER use `!!`** (non-null assertion). Use dedicated wrapper functions instead:
   - **For argument validation (`IllegalArgumentException`)** — use `requireNotNullByName { "argName" }` or `requireFieldNotNullByName { "fieldName" }` when validating input parameters, request DTO fields, or any external data passed to a function.
   - **For state validation (`IllegalStateException`)** — use `checkNotNullByName { "stateName" }` or `checkFieldNotNullByName { "fieldName" }` when validating internal invariants, class fields, or service state that should never be null under normal operation.
-  - **For repository lookups** — use `findByIdOrThrow()` from `shared/util/FindByIdOrThrow.kt`.
+  - **For repository lookups** — use `findByIdOrThrow()` from your shared utilities.
 
 - **Never** use raw `requireNotNull()` or `checkNotNull()` directly. Always use the named wrappers to ensure consistent error messages and proper exception types. Plain `check { }` and `require { }` (with a boolean condition, not a null check) remain fine to use where convenient.
   - **Distinction between validation types:**
@@ -38,41 +38,43 @@ All code-writing rules for terraaero backend.
 
   ```kotlin
   // Argument validation — caller error
-  fun assignMog(request: AssignRequest) {
-    val mogId = request.mogId.requireFieldNotNullByName { "mogId" }
-    val targetId = request.targetId.requireFieldNotNullByName { "targetId" }
+  fun assignItem(request: AssignRequest) {
+    val itemId = request.itemId.requireFieldNotNullByName { "itemId" }
+    val userId = request.userId.requireFieldNotNullByName { "userId" }
   }
 
+  // -----------------------------------------------
+
   // State validation — internal inconsistency
-  fun executeInterception() {
-    val predictor = this.predictor.checkFieldNotNullByName { "predictor" }
-    val trajectory = this.trajectory.checkFieldNotNullByName { "trajectory" }
+  fun executeOperation() {
+    val processor = this.processor.checkFieldNotNullByName { "processor" }
+    val context = this.context.checkFieldNotNullByName { "context" }
   }
   ```
 
 - **NEVER put two classes in one file.** Even if Kotlin allows it, every `class`, `data class`, `interface`, `object`, `enum class`, or `annotation class` must live in its own file.
-  - Exception: `companion object` and `fun main()` next to the application class are acceptable (Spring Boot entry point convention).
+  - Exception: `companion object` and `fun main()` next to the application class are acceptable (framework entry point convention).
 - One-line `if` and `for` statements are allowed and encouraged when they improve readability.
 
   ```kotlin
-  if (status == MogActivityStatus.RESTING)
-    assignMog(mog, trajectory)
+  if (status == OrderStatus.PENDING)
+    processOrder(order)
 
-  else if (status == MogActivityStatus.BUSY)
-    skipMog(mog)
+  else if (status == OrderStatus.CANCELLED)
+    skipOrder(order)
 
   else
-    throw ConflictException.unified("MOG is not available")
+    throw ConflictException.unified("Order is not processable")
   ```
 
 - Use `for` for iteration over ranges and collections. `while` is permitted when iteration depends on mutable state or complex conditions.
 
   ```kotlin
-  for (trajectory in trajectories) {
-    if (trajectory.status != TrajectoryStatus.PENDING) continue
+  for (item in items) {
+    if (item.status != ItemStatus.ACTIVE) continue
 
-    assignMogToLastKnownPoint(trajectory, points.lastOrNull(), allMogs, assignedMogIds)
-    trajectoryRepository.save(trajectory)
+    processItem(item, context.lastOrNull(), allHandlers, processedIds)
+    itemRepository.save(item)
   }
   ```
 
@@ -91,9 +93,8 @@ All code-writing rules for terraaero backend.
     ```kotlin
     val point = obj as? Point ?: return
 
-    if (obj is Point) {
+    if (obj is Point)
       processPoint(obj)  // smart cast applied automatically
-    }
     ```
 
   - **For casting with certainty** — Unsafe cast `as` is permitted only when the type is guaranteed (e.g., after validation or in tests).
@@ -105,14 +106,6 @@ All code-writing rules for terraaero backend.
 - **Avoid:**
   - Using `toDouble()` for type casting (use `as?` or `as` for casting)
   - Using `as` without confidence in the type
-
-    ```kotlin
-    // Wrong — using toDouble for type casting
-    val doubleValue = intValue.toDouble()
-
-    // Wrong — unsafe cast without guarantee
-    val point = obj as Point
-    ```
 
 - **Lambda blocks and scoping functions** — Use `run`, `let`, `apply`, `also`, and `with` when they improve readability and reduce boilerplate. Avoid using them solely for grouping statements without returning a value.
   - **Scoping functions are encouraged for:**
@@ -137,18 +130,18 @@ All code-writing rules for terraaero backend.
     ```kotlin
     // Bad — run used only for grouping, no return value
     run {
-      val predictor = TrajectoryPredictor()
-      predictor.init(config)
-      predictor.start()
+      val processor = DataProcessor()
+      processor.init(config)
+      processor.start()
     }
 
     // Better — direct sequential code or apply for initialization
-    val predictor = TrajectoryPredictor()
-    predictor.init(config)
-    predictor.start()
+    val processor = DataProcessor()
+    processor.init(config)
+    processor.start()
 
     // Or with apply when chain is clear
-    val predictor = TrajectoryPredictor().apply {
+    val processor = DataProcessor().apply {
       init(config)
       start()
     }
@@ -156,37 +149,30 @@ All code-writing rules for terraaero backend.
 
   - **Guideline:** Use scoping functions thoughtfully. They are tools for writing concise, expressive code, not for hiding complexity or grouping arbitrary statements.
 
-## DTO Naming
+## Naming Conventions
 
-- **`*Request` и `*Response` — только для REST API DTO.** Суффиксы `*Request` и `*Response` допустимы исключительно для классов, непосредственно участвующих в сериализации/десериализации HTTP-запросов и ответов контроллеров. Внутренние DTO и DTO из `data/internal/` никогда не должны использовать эти суффиксы.
-- **Внутренние параметры расчётов** используют суффиксы `*Input`, `*State` или `*Plan` вместо `*Request`.
-- **Примеры правильного именования:**
-  - `SituationResponse` — API ответ (допустимо)
-  - `UpdateSituationRequest` — API запрос (допустимо)
-  - `InterceptionPlan` — внутренний план перехвата (допустимо)
-  - `InterceptionPlanRequest` — внутренний DTO, назван без `*Request` (допустимо)
-- **DTO в `data/api/`** — всегда API-видимые Request/Response.
-- **DTO в `data/api/internal/`** — API-видимые как типы полей (но не top-level запросы/ответы); используют `*Input`, `*State` и т.д.
-- **DTO в `data/internal/`** — внутренние, не API-видимые. Используют `*Input`, `*State`, `*Plan` и т.д.
+- **Variables, parameters, fields** → `camelCase` (e.g. `itemCount`, `userId`, `isActive`)
+- **Functions, methods** → `camelCase` (e.g. `getUser()`, `calculateTotal()`)
+- **Classes, data classes, interfaces, objects, enums** → `PascalCase` (e.g. `UserService`, `OrderResponse`, `NotFoundException`)
+- **Constants** (`const val`) → `SCREAMING_SNAKE_CASE` (e.g. `MAX_RETRIES`, `DEFAULT_TIMEOUT_MS`)
+- **JSON keys** → `snake_case` (e.g. `"user_id"`, `"created_at"`). All JSON keys must be **explicitly declared** via `@JsonProperty("snake_case")` — never rely on default naming.
+- **Source files** (`.kt`) → `PascalCase`, matching the primary class or the purpose. Even files containing only top-level functions use `PascalCase` (e.g. `StringExtensions.kt`, `ValidationUtils.kt`).
 
-- **`*Service` suffix** — только для классов, напрямую реализующих операции конечных точек контроллера (injected in controllers). Все остальные вспомогательные классы должны использовать описательные имена без суффикса `Service`: `*Calculator`, `*Validator`, `*Helper`, `*Manager`, `*Selector`, `*Builder`, `*Handler`, `*Persister`, `*Recorder`, `*Resetter` и т.д.
+### DTO Naming
 
-  ```kotlin
-  // Controller delegates (единственные с суффиксом Service):
-  class SituationService       // injected into SituationController
-  class FileService            // injected into FileController
+- **`*Request` and `*Response` — only for REST API DTOs.** The `*Request` and `*Response` suffixes are allowed exclusively for classes that directly participate in HTTP request/response serialization in controllers. Internal DTOs must never use these suffixes.
+- **Internal parameters** use the `*Input`, `*State`, or `*Plan` suffixes instead of `*Request`.
+- **Correct naming examples:**
+  - `OrderResponse` — API response (allowed)
+  - `UpdateOrderRequest` — API request (allowed)
+  - `CalculationPlan` — internal plan (allowed)
+  - `CalculationInput` — internal DTO (allowed)
 
-  // Supporting classes (без суффикса Service):
-  class InterceptionCalculator    // calculates interception times
-  class SituationResponseBuilder  // builds response DTOs
-  class SituationPatchHandler     // applies patch operations
-  class BestMogSelector           // selects best MOG
-  class TrajectoryPredictor       // predicts trajectory
-  class SituationWriteLock        // advisory DB lock
-  class MogMapper                 // maps between layers
-  ```
+- Prefer specific, descriptive names. Avoid ambiguous abbreviations:
+  - `resolvedApiKey` rather than `key` when multiple keys exist.
+  - `userPreferences` not `prefs`.
 
-## Blank lines
+## Blank Lines
 
 - Use blank lines to separate logical sections of code. Avoid excessive blank lines that create visual noise.
 
@@ -195,23 +181,23 @@ All code-writing rules for terraaero backend.
   Blank line **needed** — when switching between different variables / logical groups:
 
   ```kotlin
-  bestMog.predictedStatus = MogActivityStatus.BUSY
-  bestMog.predictedUpdatedAt = clock.instant()
-  mogRepository.saveAndFlush(bestMog)
+  selectedItem.predictedStatus = ItemStatus.BUSY
+  selectedItem.predictedUpdatedAt = clock.instant()
+  itemRepository.saveAndFlush(selectedItem)
 
-  trajectory.assignedMogId = bestMogId
-  trajectory.status = TrajectoryStatus.PENDING
-  trajectory.isLocked = false
+  order.assignedItemId = selectedItemId
+  order.status = OrderStatus.PENDING
+  order.isLocked = false
   ```
 
   Blank line **not needed** — sequential calls on the same object or related group:
 
   ```kotlin
-  trajectory.startLat = motion.startLat
-  trajectory.startLon = motion.startLon
-  trajectory.startHeight = motion.startHeight
-  trajectory.directionLat = motion.directionLat
-  trajectory.directionLon = motion.directionLon
+  order.startLat = motion.startLat
+  order.startLon = motion.startLon
+  order.startHeight = motion.startHeight
+  order.directionLat = motion.directionLat
+  order.directionLon = motion.directionLon
   ```
 
 - Between peer-level definitions (top-level functions, member methods), use one of the following:
@@ -222,26 +208,26 @@ All code-writing rules for terraaero backend.
   No naked blank lines between peer-level definitions — always use a separator or MARK.
 
   ```kotlin
-  fun computeFull(request: InterceptionRequest): InterceptionPlan? {
+  fun computeFull(request: CalculationRequest): CalculationPlan? {
     ...
   }
 
   // -----------------------------------------------
 
   private fun computeNewPlan(
-    request: InterceptionRequest,
-    mogRadius: Double,
-  ): InterceptionPlan? {
+    request: CalculationRequest,
+    maxRadius: Double,
+  ): CalculationPlan? {
     ...
   }
 
-  // MARK: Time-to-intercept calculation
+  // MARK: Time-to-interaction calculation
   // -----------------------------------------------
 
-  private fun timeToIntercept(
-    mog: MogPlanningState,
-    target: TargetMotionState,
-    mogRadius: Double,
+  private fun calculateInteractionTime(
+    item: ItemState,
+    target: TargetState,
+    maxRadius: Double,
   ): Double? {
     ...
   }
@@ -253,22 +239,21 @@ All code-writing rules for terraaero backend.
   // MARK: Private Helpers
   // -----------------------------------------------
 
-  private fun buildSituationResponse(input): SituationResponse
+  private fun buildResponse(input): Response
   ```
 
 - **1 blank line** after class header between constructor parameters and class members.
 
   ```kotlin
   @Service
-  class SimulationCalculator(
+  class CalculationService(
     // repositories:
-    private val mogRepository: MogRepository,
-    private val targetRepository: TargetRepository,
-    private val pointRepository: PointRepository,
+    private val itemRepository: ItemRepository,
+    private val resultRepository: ResultRepository,
 
     // services:
-    private val simulationStateCalculationService: SimulationStateCalculationService,
-    private val simulationPersistenceService: SimulationPersistenceService,
+    private val stateService: StateService,
+    private val persistenceService: PersistenceService,
   ) {
 
     // MARK: calculateAndPersist
@@ -276,10 +261,10 @@ All code-writing rules for terraaero backend.
 
     @Transactional
     fun calculateAndPersist(
-      traj: TrajectoryEntity,
-      mog: MogEntity?,
+      entity: OrderEntity,
+      item: ItemEntity?,
       time: Instant,
-    ): SimulationState {
+    ): CalculationState {
       ...
     }
 
@@ -288,34 +273,32 @@ All code-writing rules for terraaero backend.
   }
   ```
 
-  **Note:** The blank line after `{` is the required 1 blank line. The MARK comment follows immediately after it. When blank line rules overlap, use only one blank line (see general principle above).
-
 - A blank line is required after one-line `if` and `for` statements too, except when the next line closes the block.
 
   ```kotlin
-  if (mog == null) return@let
+  if (item == null) return@let
 
-  reuseDestination(request, destination)
+  reuseContext(request, context)
   ```
 
 - Before `if`/`for` and after their closing `}` — a blank line (separates the block from surrounding code).
 
   ```kotlin
-  val freeMogs = filterFreeMogs(mogs, excludedIds)
+  val activeItems = filterActive(items, excludedIds)
 
-  for (mog in freeMogs) {
-    val time = computeInterceptTime(mog, target)
-    candidates.add(mog to time)
+  for (item in activeItems) {
+    val time = computeTime(item, target)
+    candidates.add(item to time)
   }
 
   val best = candidates.minByOrNull { it.second }
   ```
 
   ```kotlin
-  val freeMogs = filterFreeMogs(mogs, excludedIds)
+  val activeItems = filterActive(items, excludedIds)
 
-  for (mog in freeMogs)
-    candidates.add(mog to computeInterceptTime(mog, target))
+  for (item in activeItems)
+    candidates.add(item to computeTime(item, target))
 
   val best = candidates.minByOrNull { it.second }
   ```
@@ -323,10 +306,10 @@ All code-writing rules for terraaero backend.
 - Between adjacent conditional branches (`if`/`else if`/`else`) — a blank line before each `else if` or `else` branch.
 
   ```kotlin
-  if (status == TrajectoryStatus.COMPLETED)
+  if (status == OrderStatus.COMPLETED)
     return buildTerminalState(input)
 
-  else if (status == TrajectoryStatus.IMPOSSIBLE)
+  else if (status == OrderStatus.IMPOSSIBLE)
     return buildTerminalState(input)
 
   else
@@ -334,18 +317,18 @@ All code-writing rules for terraaero backend.
   ```
 
   ```kotlin
-  if (status == TrajectoryStatus.COMPLETED) {
-    log.info("Trajectory {} completed", trajectoryId)
+  if (status == OrderStatus.COMPLETED) {
+    log.info("Order {} completed", orderId)
     return buildTerminalState(input)
   }
 
-  else if (status == TrajectoryStatus.IMPOSSIBLE) {
-    log.warn("Trajectory {} impossible", trajectoryId)
+  else if (status == OrderStatus.IMPOSSIBLE) {
+    log.warn("Order {} impossible", orderId)
     return buildTerminalState(input)
   }
 
   else {
-    log.debug("Trajectory {} active", trajectoryId)
+    log.debug("Order {} active", orderId)
     return buildActiveState(input)
   }
   ```
@@ -354,20 +337,20 @@ All code-writing rules for terraaero backend.
 
   ```kotlin
   try {
-    predictor.loadState()
+    processor.loadState()
   }
 
   catch (e: Exception) {
-    log.warn("Failed to load predictor state, starting fresh")
+    log.warn("Failed to load state, starting fresh")
   }
   ```
 
 - Before `return` in a multi-line (block body) function — a blank line, except when `return` is in a one-line `if`/`for`, or when it is the only statement in a block (`function`, `try`, `catch`, etc.).
 
   ```kotlin
-  val distance = haversine(mogPosition, targetPosition)
+  val distance = computeDistance(positionA, positionB)
 
-  return distance <= mog.radius
+  return distance <= maxRadius
   ```
 
 - Inside functions, a blank line is required both **before and after** variable declarations, unless they belong to the same logical group.
@@ -375,42 +358,34 @@ All code-writing rules for terraaero backend.
   Between `val x = Type()` and `x.init(...)` on the next line — **no** blank line because they are one logical group:
 
   ```kotlin
-  val predictor = TrajectoryPredictor()
-  predictor.init(config)
+  val processor = DataProcessor()
+  processor.init(config)
 
-  p2p.receive(predictor, GROUP_IDS.antenna_1)
+  handler.receive(processor, groupId)
   ```
 
   Two consecutive `val`/`var` declarations in a row are also valid without a blank line between them:
 
   ```kotlin
   val radius = input.radius.toDoubleOrThrow()
-  val status = input.status?.let { MogActivityStatus.valueOf(it) }
+  val status = input.status?.let { OrderStatus.valueOf(it) }
   ```
 
 - Within a class (constructor parameters or body fields), blank lines between consecutive fields are **not** needed. A blank line is required only when introducing a new logical group preceded by a comment or annotation.
-
-- When initializing an object field by field — a blank line between declaration and the first assignment (separates declaration from multi-field population). The criterion is that the variable is subsequently used in several independent lines that form a logical block. This differs from the `init` case where `val x = Type()` and `x.init(...)` are one inseparable group — there, no blank line is needed because the lines are not separable by meaning.
-
-  ```kotlin
-  val entity = MogEntity()
-
-  entity.lat = input.lat.toDoubleOrThrow()
-  entity.lon = input.lon.toDoubleOrThrow()
-  entity.speed = input.speed.toDoubleOrThrow()
-  ```
 
 - After a long wrapped line — a blank line before the next statement.
 
   ```kotlin
   throw ConflictException.unified(
-    "Trajectory " + trajectoryId + " has no persisted target position"
+    "Order " + orderId + " has no persisted state"
   )
 
   computeNextState(input)
   ```
 
-## Single-expression functions
+- **Separator and MARK comments** — see `Comments` section for formatting rules.
+
+## Single-Expression Functions
 
 - If a function body consists of a single expression, use expression body (`=`) instead of block body (`{}`).
 - When the function returns a value, the return type **must** be specified explicitly:
@@ -435,6 +410,8 @@ All code-writing rules for terraaero backend.
 
 ## Comments
 
+- **Separator line is exactly 50 characters**: `// ` followed by 47 dashes (`// -----------------------------------------------`). Never use shorter or longer separators — always exactly 50 characters total.
+
 - **Public methods** — Every non-trivial public method must be preceded by a `// MARK:` comment. The comment describes the method's purpose or, for endpoint methods, the HTTP path.
   - **Trivial methods** (single expression, one-liner) — a separator line alone is sufficient:
 
@@ -453,10 +430,10 @@ All code-writing rules for terraaero backend.
 
     @Transactional
     fun calculateAndPersist(
-      traj: TrajectoryEntity,
-      mog: MogEntity?,
+      entity: OrderEntity,
+      item: ItemEntity?,
       time: Instant,
-    ): SimulationState {
+    ): CalculationState {
       ...
     }
     ```
@@ -464,18 +441,18 @@ All code-writing rules for terraaero backend.
   - **Groups of related functions** — a single MARK comment may mark the start of a group instead of annotating each method individually. Use judgement based on context. Between methods within the group, use a separator line:
 
     ```kotlin
-    // MARK: Interception calculations
+    // MARK: Calculation helpers
     // -----------------------------------------------
 
-    private fun calculateInterceptTime(...) { ... }
-
-    // -----------------------------------------------
-
-    private fun calculateInterceptPoint(...) { ... }
+    private fun calculateTime(...) { ... }
 
     // -----------------------------------------------
 
-    private fun validateInterception(...) { ... }
+    private fun calculatePoint(...) { ... }
+
+    // -----------------------------------------------
+
+    private fun validateCalculation(...) { ... }
     ```
 
 - All private helpers must be grouped under a `// MARK: Private Helpers` section marker. Within this section:
@@ -486,16 +463,16 @@ All code-writing rules for terraaero backend.
   // MARK: Private Helpers
   // -----------------------------------------------
 
-  private fun buildSituationResponse(...) { ... }
+  private fun buildResponse(...) { ... }
 
   // -----------------------------------------------
 
   private fun validateInput(...) { ... }
 
-  // MARK: Complex interception algorithm
+  // MARK: Complex calculation algorithm
   // -----------------------------------------------
 
-  private fun calculateInterceptionMatrix(...) { ... }
+  private fun calculateMatrix(...) { ... }
   ```
 
 - **KDoc** — Every long or important function must have a multi-line KDoc placed immediately before the function, after the blank-line separator:
@@ -505,21 +482,20 @@ All code-writing rules for terraaero backend.
   // -----------------------------------------------
 
   /**
-   * Вычисляет и сохраняет состояние симуляции для заданной траектории
-   * на указанный момент времени. Обновляет предсказанную позицию цели,
-   * статус МОГ и флаги disintegration при необходимости.
+   * Вычисляет и сохраняет состояние для заданной сущности
+   * на указанный момент времени.
    *
-   * @param traj сущность траектории для расчёта
-   * @param mog назначенная сущность МОГ или `null`, если не назначена
+   * @param entity сущность для расчёта
+   * @param item связанный объект или `null`, если не назначен
    * @param time момент времени, на который вычисляется состояние
-   * @return результирующий [SimulationState]
+   * @return результирующий [CalculationState]
    */
   @Transactional
   fun calculateAndPersist(
-    traj: TrajectoryEntity,
-    mog: MogEntity?,
+    entity: OrderEntity,
+    item: ItemEntity?,
     time: Instant,
-  ): SimulationState {
+  ): CalculationState {
     ...
   }
   ```
@@ -532,28 +508,28 @@ All code-writing rules for terraaero backend.
   - **Regular `//` comments** — either English or Russian is acceptable, but **Russian is preferred**. Historic English comments may remain, but new or modified comments should use Russian.
 
 - After `// MARK:` the text must start with a **capital letter** or be in **ALL CAPS**:
-  - `// MARK: POST /api/situation/calculate`
+  - `// MARK: POST /api/order/calculate`
   - `// MARK: Private Helpers`
-  - `// MARK: Time-to-intercept calculation`
+  - `// MARK: Time-to-interaction calculation`
 - Regular (non-MARK) comments may start with either a capital or lowercase letter.
 - Format (remember about blank lines!):
 
   ```kotlin
-  // MARK: POST /api/situation/calculate
+  // MARK: POST /api/order/calculate
   // -----------------------------------------------
 
   @Transactional
-  fun calculate(time: Instant): SituationResponse { ... }
+  fun calculate(time: Instant): OrderResponse { ... }
 
   // MARK: Private Helpers
   // -----------------------------------------------
 
-  private fun buildSituationResponse(...) { ... }
+  private fun buildResponse(...) { ... }
 
-  // MARK: Reuse existing MOG destination
+  // MARK: Reuse existing context
   // -----------------------------------------------
 
-  private fun reuseDestination(request: InterceptionRequest): InterceptionPlan?
+  private fun reuseContext(request: CalculationRequest): CalculationPlan?
   ```
 
 - Constructor parameters must be grouped with category comments:
@@ -563,24 +539,64 @@ All code-writing rules for terraaero backend.
     // repositories:
     private val userRepository: UserRepository,
 
+    // mappers:
+    private val userMapper: UserMapper,
+
     // services:
-    private val listingService: ListingService,
+    private val notificationService: NotificationService,
   )
   ```
 
-- Every data class property must have a short side comment explaining meaning and units where not obvious from naming. Self-explanatory fields (e.g. `targetId`, `maskId`) don't need a comment.
+- Every data class property must have a short side comment explaining meaning and units where not obvious from naming. Self-explanatory fields (e.g. `userId`, `itemId`) don't need a comment.
 
   ```kotlin
-  data class MaskPoint(
-    val maskId: UUID = ...,
-    val dfHz: Double = 0.0,  // offset from carrier, Hz
+  data class FilterConfig(
+    val id: UUID = ...,
+    val dfHz: Double = 0.0,  // offset from center, Hz
     val aDb: Double = 0.0,   // relative attenuation, dB
   )
   ```
 
 ## Constants
 
-- All shared strings, magic numbers, regex patterns, and validation messages live in `shared/Constants.kt`.
+- **No magic values anywhere in code.** This applies to **all** literal types: string literals (`"user"`, `"/config/path"`), numeric constants (`3.14`, `86400`, `4096`), and any other hardcoded value that carries domain meaning. Every shared value must be defined in exactly one central location.
+
+- **The only permissible inline literals** are:
+  - Unit conversion factors (`1e6`, `1e-3`, `1000`) — values that only translate between measurement units, never domain logic
+  - Precision/sentinel constants (`1e-9`, `-1`) — values that define computational precision or "no value" markers
+  - Trivial initialisers (`0`, `1`, `""`) — when semantically obvious and not carrying domain meaning
+
+- All shared strings, magic numbers, regex patterns, and validation messages live in a dedicated `object Constants` in `Constants.kt`.
+
 - Organize into nested objects: `Math`, `Entity`, `ErrorDescription`, `Validation`, `Pattern`.
+
 - Reference constants via `Constants.<Object>.<FIELD>` — never inline magic values.
 
+```kotlin
+object Constants {
+  object Math {
+    const val EARTH_RADIUS_M = 6_371_000.0
+    const val DEG_TO_RAD = PI / 180.0
+  }
+
+  // -----------------------------------------------
+
+  object Entity {
+    const val USER = "User"
+    const val ORDER = "Order"
+  }
+
+  // -----------------------------------------------
+
+  object Validation {
+    const val INVALID_EMAIL = "Invalid email format"
+    const val REQUIRED_FIELD = "Required field is missing"
+  }
+
+  // -----------------------------------------------
+
+  object Pattern {
+    const val UUID_RE = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  }
+}
+```

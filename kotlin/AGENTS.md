@@ -2,11 +2,11 @@
 
 ## Project & Profile
 
-Terraaero Backend — drone interception simulation service for mobile fire
-groups (MOG). Multi-layer architecture with domain package separation, built
-on Spring Boot Kotlin multi-module Gradle layout (`root` + `core`).
+_Brief description of the project and its purpose._
 
-Package: `space.gitlab.deevlab.terraaero.backend`
+Package: `com.example.project`
+
+Built on Kotlin with a multi-module Gradle layout (`root` + application module(s)).
 
 ### Code style
 
@@ -21,7 +21,7 @@ _Instruction for Agent:_ If you haven't read `./CODE-STYLE.md` in the current se
 ### Modules
 
 - **Mandatory**: keep the multi-module structure (`root` + at least one application module).
-- Application code lives in `core/` (or additional domain modules).
+- Application code lives in a dedicated module (e.g., `core/`).
 - The root `build.gradle.kts` declares plugin versions with `apply false` and configures shared settings for all subprojects (`allprojects`, `subprojects`).
 - Version pins for third-party libraries go in `dependencies.gradle.kts` under `extra["versions"]`.
 
@@ -71,12 +71,12 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./gradlew build
 **Every change must be verified by running the test suite.** No exceptions.
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd core/src/test/python && uv run pytest"
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd app/src/test/python && uv run pytest"
 ```
 
-All JVM tests in `./gradlew build` and all pytest integration tests must pass. If any test fails, fix the issue before considering the change complete. The pytest suite uses `uv` and `pytest`; dependencies are declared in `core/src/test/python/pyproject.toml`.
+All JVM tests in `./gradlew build` and all pytest integration tests must pass. If any test fails, fix the issue before considering the change complete.
 
-**Note:** The previous run's server may still be alive on port 8080. Always kill it (see below) before starting a fresh one.
+**Note:** The previous run's server may still be alive on the default port. Always kill it (see below) before starting a fresh one.
 
 ### Start the application
 
@@ -85,20 +85,11 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd .docker/db &
 ```
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "nohup java -jar core/build/libs/terraaero-back-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "nohup java -jar app/build/libs/app-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
 ```
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/situation 2>/dev/null && echo ready && break; sleep 3; done"
-```
-
-**Automated start script (recommended):**
-
-```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for pid in \$(netstat -ano 2>/dev/null | grep ':8080.*LISTENING' | awk '{print \$NF}'); do taskkill -F -PID \$pid 2>/dev/null; done"
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd .docker/db && docker compose down -v && docker compose up -d && sleep 3"
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "nohup java -jar core/build/libs/terraaero-back-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/situation 2>/dev/null && echo ready && break; sleep 3; done"
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/health 2>/dev/null && echo ready && break; sleep 3; done"
 ```
 
 ### Stop the application
@@ -111,86 +102,81 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for pid in \$(n
 
 Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkill` command above.
 
+### Setup
+
+```bash
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./gradlew build"
+```
+
+This downloads dependencies and builds the project. For IDE: IntelliJ IDEA with Kotlin plugin is recommended. Open the project root directory and let Gradle sync.
+
 ## Software Architecture & Design Patterns
+
+### Documentation
+
+- **Standalone Markdown documentation pages** → `SCREAMING_SNAKE_CASE` names (e.g., `CONFIG.md`, `ARCHITECTURE.md`, `CODE-STYLE.md`). Keep conventional repository files such as `README.md` unchanged unless explicitly requested.
 
 ### Package layout
 
 - **Never create or use a `model` package.** Domain state types must live in explicit purpose folders instead.
-- `enum/` contains only enum classes. Kotlin packages for this folder use an escaped segment, for example:
-
-  ```kotlin
-  package space.gitlab...mog.`enum`
-  import space.gitlab...mog.`enum`.MogActivityStatus
-  ```
-
+- `enum/` contains only enum classes.
 - `data/` contains only `data class` DTO/state/input classes.
-- `data/api/` contains every `*Request` and `*Response` class, including nested response DTOs used by aggregate API responses.
-- `data/api/internal/` contains DTOs used as field types inside `data/api/` classes (such as `*Input` and `*State` classes). These are API-visible but are not top-level Request/Response types.
-- `data/internal/` contains non-API data classes such as `*Plan`, `*Input`, and `*State` classes that are **not** referenced from `data/api/` classes.
+- `data/api/` contains every `*Request` and `*Response` class, including nested response DTOs used by aggregate API responses (for web applications).
+- `data/api/internal/` contains DTOs used as field types inside `data/api/` classes (such as `*Input` and `*State`).
+- `data/internal/` contains non-API data classes such as `*Plan`, `*Input`, and `*State` classes that are **not** referenced from `data/api/`.
 - `storage/` contains only persistence classes: `*Entity` and `*Repository`.
 - `service/` contains only services that directly implement controller endpoint operations. Supporting services live in purpose subpackages such as `service/internal/`.
-- Domain-owned files stay inside their domain folder. In particular, every `Mog*` file belongs under `mog/`, every `Target*` file belongs under `target/`, and these types must not be parked in `situation/` or other aggregate packages just because they are used by an aggregate response.
-
-### DTO package structure
-
-- Directly controller-visible DTOs live in the endpoint domain's `data/api/`.
-- Request/response DTOs used only as nested DTOs still live in the owning domain's `data/api/`.
-- Internal non-API DTOs live in the owning domain's `data/internal/`.
-- DTOs used as field types inside `data/api/` classes (such as `*Input` and `*State`) live in `data/api/internal/` under the owning domain.
-- Aggregate responses must import nested domain DTOs from their owning domains: `Mog*Response` from `mog/data/api/`, `Target*Response` from `target/data/api/`, `Point*Response` from `point/data/api/`, and `Trajectory*Response` from `trajectory/data/api/`.
+- Domain-owned files stay inside their domain folder. Types must not be parked in unrelated aggregate packages just because they are used by an aggregate response.
 
 ### Domain folders
 
-- Each domain type lives in its own domain folder:
-  - `Mog*` in `mog/`
-  - `Target*` in `target/`
-  - `Point*` in `point/`
-  - `Trajectory*` in `trajectory/`
-- Aggregate domains (`situation/`) must not contain foreign files — only their own services and DTOs.
+- Each domain type lives in its own domain folder (e.g., `order/`, `user/`, `product/`).
+- Aggregate domains must not contain foreign files — only their own services and DTOs.
+- Reference other domains from aggregate services via imports, not by placing foreign types in the aggregate package.
 
-### DTO Design
+### DTO Design (for web applications)
 
-- **Field types** — all fields in **request** DTOs must be `String` (or `String?`), never `Double`, `UUID`, or `Instant`. All fields in **response** DTOs must use native types (`Double`, `UUID`, `Instant`).
-- **JSON naming** — all JSON keys must be **explicitly declared** via `@field:JsonProperty("snake_case")` on every field, never rely on Jackson's default camelCase naming. Entity references never use the `_id` suffix: `assignedMogId` maps to `@JsonProperty("assigned_mog")`, `trajectoryId` maps to `@JsonProperty("trajectory")`, `mogIds` maps to `@JsonProperty("mogs")`.
-- **Boolean serialization** — fields with `is` prefix use `@get:JsonIgnore @field:JsonProperty` to prevent duplicate serialization (the `isKilled` / `killed` problem).
-- **Partial updates** — all fields default to `null`; absence from JSON means "don't update". Class-level `@AtLeastOneField` annotation rejects empty `{}` bodies. Lists use `= null` default (never `= emptyList()`), so the field can be entirely omitted.
+- **Field types** — all fields in **request** DTOs must be `String` (or `String?`), never raw domain types like `Double`, `UUID`, or `Instant`. All fields in **response** DTOs must use native types (`Double`, `UUID`, `Instant`).
+- **JSON naming** — all JSON keys must be **explicitly declared** via `@field:JsonProperty("snake_case")` on every field. Never rely on Jackson's default camelCase naming.
+- **Boolean serialization** — fields with `is` prefix use `@get:JsonIgnore @field:JsonProperty` to prevent duplicate serialization.
+- **Partial updates** — all fields default to `null`; absence from JSON means "don't update". Lists use `= null` default (never `= emptyList()`), so the field can be entirely omitted.
 
-### Controllers
+### Controllers (for web applications)
 
 - Controllers are **thin** — each method delegates to exactly one service call.
 - Controllers never access repositories directly.
-- Use `@Suppress("unused")` on controller classes (Spring instantiates via reflection).
-- Use `@Tag(name = "...")` for Swagger documentation.
+- Use `@Suppress("unused")` on controller classes (the framework instantiates via reflection).
+- Use appropriate API documentation annotations (e.g., `@Tag(name = "...")` for Swagger).
 
 ### Controller-Service Communication
 
-- **Controller layer**: all controller method parameters and `@RequestParam`/`@PathVariable` arguments must be `String` (or `String?`). DTO request classes already enforce `String` fields — this is about raw controller parameters.
+- **Controller layer**: all controller method parameters and `@RequestParam`/`@PathVariable` arguments must be `String` (or `String?`).
 
 - **`*String` suffix**: every controller parameter that carries a raw value destined for conversion **must** end with the `String` suffix (exception: parameters that are `@RequestBody` Request DTO classes — the suffix is already inside the DTO fields).
 
   ```kotlin
-  @GetMapping("/file/{file_id}")
-  override fun getFile(
+  @GetMapping("/item/{item_id}")
+  override fun getItem(
     @RequestParam("user_id") userIdString: String,
-    @PathVariable("file_id") fileIdString: String,
-  ): FileResponse = fileService.getFile(userIdString, fileIdString)
+    @PathVariable("item_id") itemIdString: String,
+  ): ItemResponse = itemService.getItem(userIdString, itemIdString)
   ```
 
 - **Service layer**: service method parameters that receive raw `String` values from the controller **must also use the `*String` suffix**, matching the controller naming exactly.
 
-- **Strict typing**: immediately at the start of every service method that receives `String` parameters, **cast every String to its proper type** (UUID, Double, Instant, etc.) using the conversion functions from `shared/util/StringExtensions.kt`. After the initial conversion block, **no raw String arguments should remain in scope** — work exclusively with strongly-typed values.
+- **Strict typing**: immediately at the start of every service method that receives `String` parameters, **cast every String to its proper type** (UUID, Double, Instant, etc.) using conversion functions. After the initial conversion block, **no raw String arguments should remain in scope** — work exclusively with strongly-typed values.
 
   ```kotlin
-  fun getFile(
+  fun getItem(
     userIdString: String,
-    fileIdString: String,
-  ): FileResponse {
+    itemIdString: String,
+  ): ItemResponse {
     val userId = userIdString.toUUIDOrThrow()
-    val fileId = fileIdString.toUUIDOrThrow()
+    val itemId = itemIdString.toUUIDOrThrow()
 
-    val file = fileRepository.findByIdOrThrow(fileId, "File")
+    val item = itemRepository.findByIdOrThrow(itemId, "Item")
 
-    return fileMapper.toResponse(file)
+    return itemMapper.toResponse(item)
   }
   ```
 
@@ -198,31 +184,31 @@ Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkil
 
 ### Services
 
-- **`*Service` naming** — Only classes that directly implement controller endpoint operations (i.e., are injected into controllers and called from controller methods) may have the `Service` suffix. All other supporting classes (internal helpers, calculators, validators, etc.) must use descriptive names without the `Service` suffix, such as `*Calculator`, `*Validator`, `*Helper`, `*Manager`, or domain-specific names like `SituationWriteLock`.
+- **`*Service` naming** — Only classes that directly implement controller endpoint operations (i.e., are injected into controllers and called from controller methods) may have the `Service` suffix. All other supporting classes (internal helpers, calculators, validators, etc.) must use descriptive names without the `Service` suffix, such as `*Calculator`, `*Validator`, `*Helper`, `*Manager`, or domain-specific names.
 
-- **Service responsibilities** — A `*Service` class orchestrates the endpoint flow: validating input, calling repositories, invoking mappers, and coordinating other components. It does not contain complex algorithms or low‑level logic — those belong to separate internal classes (e.g., in `service/internal/`).
+- **Service responsibilities** — A `*Service` class orchestrates the endpoint flow: validating input, calling repositories, invoking mappers, and coordinating other components. It does not contain complex algorithms or low‑level logic — those belong to separate internal classes.
 
 ### Mappers
 
 - **Mappers are mandatory.** Every conversion between layers (Entity to/from Response DTO, Request DTO to Entity, Entity to internal DTO, raw values to typed DTO) must go through a dedicated mapper class. No inline mapping anywhere in services or controllers.
 
-- **Never use MapStruct.** Mappers are plain Kotlin `@Component` classes with hand-written functions. No annotation-based code generation, no mapping interfaces, no reflection.
+- **Never use code generation tools for mapping** (e.g., MapStruct). Mappers are plain Kotlin classes with hand-written functions.
 
 - **Never delegate mapping logic to separate services.** A mapper is a mapper — not a service. It has no dependencies on other mappers, no side effects, no database access. It purely transforms data.
 
 - **Mappers sit at the domain root**, at the same directory level as `service/` and `storage/`:
 
   ```
-  mog/
+  order/
     data/
     enum/
     service/
       internal/
-        MogInputParsingService.kt
+        OrderCalculator.kt
     storage/
-      MogEntity.kt
-      MogRepository.kt
-    MogMapper.kt          ← at domain root, alongside service/ and storage/
+      OrderEntity.kt
+      OrderRepository.kt
+    OrderMapper.kt          ← at domain root, alongside service/ and storage/
   ```
 
   Note: unlike services (which go in `service/`), mappers are placed directly at the domain root. They are not services — they are pure data transformers with no database access, no side effects, and no other service dependencies.
@@ -231,18 +217,17 @@ Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkil
 
   ```kotlin
   @Service
-  class SituationService(
+  class OrderService(
     // repositories:
-    private val mogRepository: MogRepository,
-    ...
+    private val orderRepository: OrderRepository,
+    private val userRepository: UserRepository,
 
     // mappers:
-    private val mogMapper: MogMapper,
-    private val targetMapper: TargetMapper,
+    private val orderMapper: OrderMapper,
+    private val userMapper: UserMapper,
 
     // services:
-    private val situationWriteLock: SituationWriteLock,
-    ...
+    private val orderCalculator: OrderCalculator,
   )
   ```
 
@@ -250,16 +235,16 @@ Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkil
 
 #### Forbidden anti-patterns
 
-The following conversion patterns were used in the project **before** the mapper rule was introduced. All of them are **permanently forbidden** — their presence in code is considered a style violation:
+The following conversion patterns are **permanently forbidden** — their presence in code is considered a style violation:
 
-- Inline construction of Response DTOs directly inside a service — `MogResponse(id = ..., speed = ..., ...)`, `TargetResponse(id = ..., ...)`, `TrajectoryResponse(...)`, and any other response class inside the body of `buildResponse()` or similar methods.
-- Inline Entity construction via constructor inside `forEach` — `PointEntity(trajectoryId = ..., lat = ..., ...)`, `TrajectoryEntity(name = ..., status = ...)`, `TargetEntity(trajectoryId = ...)` inside the body of `replace()` or `patch()`.
-- Manual field-by-field copy from internal DTO to Entity — `trajectory.startLat = motion.startLat`, `trajectory.directionLat = motion.directionLat`, and similar assignment chains.
-- Construction of internal DTOs from raw Entity fields — `MogPlanningState(position = Point3D(mog.realLat, ...), speed = mog.speed, ...)`, `TargetMotionState(...)`, `InterceptionRequest(...)`, `TrajectoryMotion(...)`, `SimulationState(...)` inside `calculate()` or `selectBestMog()`.
-- Methods that mix business logic with mapping — `SituationResponseService.buildResponse()` iterates trajectories, computes `haversine(...)` distances, populates `mogDestinations`, and builds all response objects in one method.
-- Parsing service masquerading as a mapper — `MogInputParsingService` parses strings (which is fine) but also constructs `MogEntity` via `MogEntity.create(...)` (which belongs in `MogMapper`).
-- Entity companion factory — `MogEntity.create(lat, lon, height, ...)` as a factory method inside the Entity class itself. Entity construction belongs in `MogMapper.toEntity(...)`.
-- Extension function `toEntity` on an internal DTO — `ParsedMogInput.toEntity(status, timestamp)` inside `MogInputParsingService`. This is hidden mapping that should be an explicit mapper method.
+- Inline construction of Response DTOs directly inside a service.
+- Inline Entity construction via constructor inside `forEach` or similar loops.
+- Manual field-by-field copy from internal DTO to Entity.
+- Construction of internal DTOs from raw Entity fields inside business logic methods.
+- Methods that mix business logic with mapping.
+- Parsing/utility classes that also construct entities.
+- Entity companion factory methods for construction from DTOs.
+- Extension functions on DTOs that produce entities.
 
 Instead of all of the above — **mappers only**.
 
@@ -296,41 +281,39 @@ class UserMapper {
 **Mapper with multiple response variants and external dependencies:**
 
 ```kotlin
-// listing/ListingMapper.kt
+// product/ProductMapper.kt
 @Component
-class ListingMapper {
+class ProductMapper {
 
   // MARK: toResponse
   // -----------------------------------------------
 
-  fun toResponse(listing: Listing) = ListingResponse(
-    id = listing.id.checkFieldNotNullByName { "id" },
-    name = listing.name,
-    type = listing.type,
-    status = listing.status,
-    ...
+  fun toResponse(product: Product) = ProductResponse(
+    id = product.id.checkFieldNotNullByName { "id" },
+    name = product.name,
+    type = product.type,
+    status = product.status,
   )
 
-  // MARK: toStatusResponse
+  // MARK: toSummaryResponse
   // -----------------------------------------------
 
-  fun toStatusResponse(listing: Listing) = ListingStatusResponse(
-    id = listing.id.checkFieldNotNullByName { "id" },
-    slicerStatus = listing.status,
-    error = listing.error,
-    ...
+  fun toSummaryResponse(product: Product) = ProductSummaryResponse(
+    id = product.id.checkFieldNotNullByName { "id" },
+    status = product.status,
+    error = product.error,
   )
 
   // MARK: toEntity
   // -----------------------------------------------
 
   fun toEntity(
-    request: ListingCreateRequest,
-    user: User,
+    request: ProductCreateRequest,
+    owner: User,
     file: File,
-  ) = Listing(
+  ) = Product(
     name = request.validateAndGetName(),
-    user = user,
+    owner = owner,
     file = file,
     type = request.validateAndGetType().toEnumOrThrow(),
   )
@@ -349,14 +332,13 @@ class OrderMapper {
 
   fun toResponse(
     order: Order,
-    listingIds: List<UUID>,   // data from a join table, not on the entity
+    productIds: List<UUID>,   // data from a join table, not on the entity
   ) = OrderResponse(
     id = order.id.checkFieldNotNullByName { "id" },
     userId = order.user.id.checkFieldNotNullByName { "user.id" },
     costs = order.costs,
     finalCost = order.finalCost,
-    listingIds = listingIds,
-    ...
+    productIds = productIds,
   )
 
   // MARK: toEntity
@@ -381,6 +363,8 @@ fun getUser(userIdString: String): UserResponse =
   userRepository.findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
     .let { userMapper.toResponse(it) }
 
+// -----------------------------------------------
+
 // Service resolves FK, mapper assembles the Entity:
 fun createOrder(
   request: OrderCreateRequest,
@@ -400,29 +384,50 @@ fun createOrder(
 
 ### Exceptions
 
-- Use the `BaseClientException` hierarchy for client-facing errors (`BadRequestException`, `NotFoundException`, `ConflictException`).
+- Use a `BaseClientException` hierarchy for client-facing errors (`BadRequestException`, `NotFoundException`, `ConflictException`).
 - Each exception takes two messages: `devMessage` (shown in dev profile) and `prodMessage` (shown in prod).
-- Propagate exceptions to the `GlobalExceptionHandler` — do not catch and convert in controllers.
-- Use `BaseClientExceptionFactory.unified()` for concise exception creation when dev and prod messages are the same.
+- Propagate exceptions to a global exception handler — do not catch and convert in controllers.
+- Use a `unified()` factory method for concise exception creation when dev and prod messages are the same.
 
 ## Persistence & Database Engineering
 
-### Entities and JPA relationships
+### Entities and ORM relationships
 
-- **No `@ManyToOne` with lazy proxies.** Use bare UUID FK columns and resolve related entities manually via `repository.findById()`. This avoids `LazyInitializationException` and Hibernate session management issues.
-- **No bidirectional relationships** — no `@OneToMany` back-pointers.
-- Entity IDs use `@GeneratedValue(strategy = GenerationType.UUID)` with `var id: UUID? = null`. Do NOT set the ID manually when constructing entities for `save()` — let Hibernate generate it via `persist()`. Setting the ID manually causes `save()` to call `merge()` instead of `persist()`, which can cause stale-state conflicts after bulk deletes.
+If using an ORM (e.g., JPA/Hibernate):
 
-### Liquibase migrations
+- **Avoid `@ManyToOne` with lazy proxies.** Use bare FK columns and resolve related entities manually via `repository.findById()`. This avoids `LazyInitializationException` and session management issues.
+- **No bidirectional relationships** — no reverse collection mappings.
+- Entity IDs use auto-generation (e.g., `@GeneratedValue(strategy = GenerationType.UUID)`) with `var id: UUID? = null`. Do NOT set the ID manually when constructing entities for `save()` — let the provider generate it. Setting the ID manually causes merge semantics instead of persist, which can cause stale-state conflicts.
 
-- **NEVER modify an already-applied migration.** Once a changeset has been executed in any environment (even local dev), its checksum is recorded in the `databasechangelog` table. Modifying the changeset will cause a checksum mismatch and the application will fail to start.
+### Database migrations
+
+- **NEVER modify an already-applied migration.** Once a migration has been executed in any environment (even local dev), its checksum is recorded. Modifying the changeset will cause a checksum mismatch and the application will fail to start.
 - To change the schema or data, always create a **new** migration file with a new changeset id.
 - To remove seed data that was inserted in an old migration, use a new migration with `DELETE` statements — do not edit the original INSERT.
-- Migration files live in `core/src/main/resources/db/changelog/changes/` and are registered in `changelog-master.yml`.
+
+## Testing Strategy
+
+### Unit Tests
+
+- Use **JUnit 5** (`@Test`, `@DisplayName`) for unit tests.
+- Tests live in `src/test/kotlin/` mirroring the main source structure.
+- Test file naming: `<Class>Test.kt`.
+- Run unit tests via `timeouted.py "./gradlew test"`.
+
+### Integration Tests
+
+- Place integration tests in `src/test/kotlin/` with `@Tag("integration")` or under `integration/` package.
+- Use **Testcontainers** or **Spring Boot Test** for integration tests.
+- Run integration tests: `timeouted.py "./gradlew test -DincludeTags=\"integration\""`.
+
+### Coverage
+
+- Aim for high coverage of core business logic. Use **Jacoco** or **Kover** to measure coverage.
+- Run coverage report: `timeouted.py "./gradlew test jacocoTestReport"` (or `timeouted.py "./gradlew koverReport"`).
 
 ## Environment & Configuration
 
 - `.env.example` is a **committed template** — never use it directly in scripts or at runtime. It exists solely as documentation for developers.
 - `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
-- All shell scripts in `.docker/db/` read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.
-- `application.yml` loads `.env` via `spring.config.import: optional:file:.env`.
+- All shell scripts read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.
+- The application configuration loads `.env` via the appropriate mechanism (e.g., `spring.config.import: optional:file:.env` for Spring Boot).

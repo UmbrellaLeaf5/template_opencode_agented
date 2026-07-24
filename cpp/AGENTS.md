@@ -1,46 +1,68 @@
-# RFSimLib-Tests - AGENTS.md
+# AGENTS.md
 
-> **CRITICAL RULE:** Never execute `git commit` or `git push` without an explicit user command. This applies to ALL THREE repositories: RFSim (root), RFSimLib, RFSimLib-Tests. Even if the build passes, all tests are green, and changes are trivial — the user decides when to commit. No exceptions.
+## Project & Profile
 
-> Quick reference for AI agents. Full docs in [README.md](README.md).
+_Brief description of the project and its purpose._
 
-> Python visualization rules: see [scripts/python/AGENTS.md](scripts/python/AGENTS.md).
+### Code style
 
----
+You MUST strictly follow the project's coding standards, naming conventions, and language-specific rules.
 
-## Quick Start
+Before generating, refactoring, or modifying any code, you are REQUIRED to read and apply the guidelines defined in the external style guide:
+
+- **File Path:** [`./CODE-STYLE.md`](./CODE-STYLE.md)
+
+_Instruction for Agent:_ If you haven't read `./CODE-STYLE.md` in the current session, use your file-reading tool to fetch its content before writing any code. Do not hallucinate styles.
+
+## Operational Rules & Critical Restrictions
+
+**UNDER NO CIRCUMSTANCES may you commit, push, amend, rebase, or modify the git history without an EXPLICIT instruction to do so.** This is the most important rule in this document. Violating it may result in lost work and broken branches.
+
+This specifically includes:
+
+- `git commit` / `git commit --amend` / `git commit -m "..."`
+- `git push` / `git push --force` / `git push --force-with-lease`
+- `git add` (stage for commit — prefer working-tree-only edits)
+- `git rebase` / `git reset` / `git checkout` (to modify branches)
+- Any other command that creates or alters commits
+
+If the user asks "what should the commit message be?" — **suggest a message but do NOT commit**. Wait for an explicit directive such as:
+
+- "commit"
+- "commit and push"
+- "закоммить"
+- "сделай коммит"
+
+**If the user says "обнови AGENTS.md" or similar — this is NOT a commit instruction. Do NOT add or commit files unless told to.**
+
+## Workflow & Verification Commands
+
+### Time limit (HARD REQUIREMENT)
+
+**Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
 
 ```bash
-# Linux (symlink)
-git clone https://gitlab.inst.falt.ru/uav_platform/imitation_models/electromagnetics/RFSimLib ../RFSimLib
-git clone https://gitlab.inst.falt.ru/uav_platform/imitation_models/electromagnetics/RFSimLib-Tests . && bash scripts/bash/symlink/symlink.sh
-
-# Windows (symlink)
-git clone https://gitlab.inst.falt.ru/uav_platform/imitation_models/electromagnetics/RFSimLib ../RFSimLib
-git clone https://gitlab.inst.falt.ru/uav_platform/imitation_models/electromagnetics/RFSimLib-Tests .
-scripts\\bash\\symlink\\symlink.bat
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
 ```
 
-## Required Cycle After Any `.cpp/.h/.hpp` Change
+Long-running daemons must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
+
+### Required Cycle After Any `.cpp/.h/.hpp` Change
 
 ```bash
-# 1. Formatting
-clang-format -i $(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)$')
-
-# 1a. NEVER apply clang-format to CMake files (`CMakeLists.txt`, `*.cmake`)
-#     - it destroys CMake syntax.
+# 1. Formatting all changed files
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "clang-format -i \$(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)\$')"
 
 # 2. Build (0 errors, 0 warnings)
-mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j$(nproc)
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j\$(nproc)"
 
-# 3. Scenario tests (no NaN, no crashes)
-cd .. && bash scripts/bash/run/run_all.sh
-
-# 4. Regression tests (separate CMake project)
-cd ../tests && mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j$(nproc) && ./RFSimRegressionTestsExe
+# 3. Run tests
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./build/tests"
 ```
 
-Regression tests are a standalone CMake project in `tests`. NEVER include them from the root `CMakeLists.txt`, `RFSimLib/CMakeLists.txt`, or any other primary CMake project.
+### Mandatory Testing
+
+**Every change must be verified by running the test suite.** No exceptions.
 
 ### Building with GCC via MSYS2 (Windows)
 
@@ -59,367 +81,80 @@ export PATH="/<msys2_root>/mingw64/bin:/<msys2_root>/usr/bin:$PATH"
 
 where `<msys2_root>` is the MSYS2 installation root.
 
-## Code-style
+## Software Architecture & Design Patterns
 
-### Naming
+### Documentation
 
-- **Classes, structs, enums** -> `PascalCase` (e.g. `P2PSignalHandler`, `AntennaDynState`, `MaskPoint`)
-- **Methods, functions, variables, fields, parameters** -> `snake_case` (e.g. `do_step()`, `make_object_rf_sig()`, `_gain_max_dbi`)
-- **Private fields and methods** -> `_` prefix + `snake_case` (e.g. `_gain_max_dbi`, `_fading_margin_db`)
-- **Constants** (`const`/`constexpr` variables, including local constants) -> `SCREAMING_SNAKE_CASE` (e.g. `DEFAULT_MAIN_LOBE_HALF_ANGLE_DEG`, `GROUP_ID_1`)
-- **Namespaces** -> lowercase (e.g. `rfsim`, `math`)
-- **JSON keys** -> `snake_case` (e.g. `"center_freq_hz"`, `"gain_max_dbi"`)
+- **Standalone Markdown documentation pages** → `SCREAMING_SNAKE_CASE` names (e.g., `JSON.md`, `ARCHITECTURE.md`, `CODE-STYLE.md`). Keep conventional repository files such as `README.md` unchanged unless explicitly requested.
 
-Examples:
+### Project Structure
 
-```cpp
-namespace rfsim {
-
-class P2PSignalHandler {
-public:
-  void do_step(double dt_s);
-
-private:
-  double _fading_margin_db = 0.0;
-};
-
-}  // namespace rfsim
-```
-
-```cpp
-constexpr double DEFAULT_MAIN_LOBE_HALF_ANGLE_DEG = 30.0;
-```
-
-```json
-{
-  "center_freq_hz": 868000000.0,
-  "gain_max_dbi": 3.0
-}
-```
-
-### File Structure
-
-- **Each namespace - its own directory** (e.g. `rfsim/`, `math/`)
-- **Each type - its own file** (Java-style). Within a namespace: shared across classes -> `shared/`, used by a single class -> `components/`
-- **All header files (except `lib/`) - `.hpp`**
-- **All headers use `#pragma once`**
-- **Files containing exactly one class/struct/enum - named PascalCase matching the type** (e.g. `Antenna.hpp`, `PropagationResult.hpp`). Files with multiple functions (e.g. `functions.hpp`) - snake_case.
-- **Standalone Markdown documentation pages** -> `SCREAMING_SNAKE_CASE` names (e.g. `JSON.md`, `PROPAGATION.md`, `LOGS.md`). Keep conventional repository files such as `README.md` and existing normative document names unchanged unless explicitly requested.
-- **RFSimLib Doxygen Markdown pages** -> only files in `RFSimLib/docs/info` are included in Doxygen. Keep runner-only documentation, including `scenario.json`, in `RFSimLib-Tests`.
-
-Examples:
+- Headers are kept in an `include/` directory tree. Source files mirror the header structure under `src/`.
+- See [`./CODE-STYLE.md`](./CODE-STYLE.md) for file naming and organisation conventions.
 
 ```text
-RFSimLib/include/RFSimLib/rfsim/Antenna.hpp
-RFSimLib/include/RFSimLib/rfsim/components/MaskPoint.hpp
-RFSimLib/include/RFSimLib/rfsim/shared/RFSignal.hpp
-RFSimLib/docs/info/JSON.md
-RFSimLib-Tests/README.md
+include/myproject/core/Processor.hpp
+include/myproject/core/components/Config.hpp
+include/myproject/core/shared/State.hpp
+src/core/Processor.cpp
 ```
 
-```cpp
-#pragma once
-
-namespace rfsim {
-
-class Antenna {};
-
-}  // namespace rfsim
-```
-
-### Comments and Doxygen
-
-- **Always in Russian.**
-- **Console output - in English** (ASCII only).
-- **Section separators** in `.cpp` -> `// Text` (with `// ------` framing where needed).
-- **Every function, class, struct and enum in `.hpp` - Doxygen comments** (`/** @brief ... */` or `/** @brief ... @param ... @return ... */`)
-- **Doxygen comments are always multiline** - single-line `/** @brief ... */` is not allowed.
-- **For functions:** the comment answers "what does it do?".
-- **For classes/structs:** the comment answers "what is it?".
-- **@details** - added to complex functions and classes to describe the algorithm, formulas, or implementation specifics.
-
-Examples:
-
-```cpp
-// -------------------------------------------------------------------------
-// Инициализация среды распространения
-// -------------------------------------------------------------------------
-
-/**
- * @brief Результат расчёта распространения радиосигнала.
- */
-struct PropagationResult {
-  double distance_km = 0.0;  // расстояние между объектами, км
-};
-
-/**
- * @brief Возвращает последнюю рассчитанную мощность приёма.
- * @param src_group Идентификатор группы источника.
- * @param target_group Идентификатор группы приёмника.
- * @return Мощность приёма, дБм.
- */
-double get_received_power_dbm(int32_t src_group, int32_t target_group) const;
-```
-
-```cpp
-std::cout << "Loaded " << jammers.size() << " jammer(s)" << std::endl;
-```
-
-> `components/` - for types used by only one class within the namespace (e.g. `MaskPoint` is only used by `Jammer`). `shared/` - for types shared by multiple classes within the namespace (e.g. `RFSignal` is used by `Antenna`, `Jammer`, and `P2PSignalHandler`).
-
-### Blank Lines
-
-- One-line `if` and `for` statements are allowed and encouraged when they improve readability.
-
-```cpp
-if (model == "p525")
-  use_p525();
-
-else if (model == "p528")
-  use_p528();
-
-else
-  throw std::invalid_argument("[Config] Unknown model");
-```
-
-- A blank line is required after one-line `if` and `for` statements too, except when the next line closes the block.
-
-```cpp
-if (path.empty()) return;
-
-parser.init(path);
-```
-
-- Use `for` for all loops. `while` loops are forbidden; use `for (; condition;)` when there is no init/update expression.
-
-```cpp
-for (; sim_time < sim_duration;)
-  sim_time += dt;
-```
-
-- C-style casts are forbidden; use C++ casts such as `static_cast`.
-
-```cpp
-const size_t idx = static_cast<size_t>(jammer_idx);
-```
-
-- Standalone semantic blocks without `if`, `for`, function, class/struct, namespace, or initializer context are forbidden. Do not use bare `{ ... }` only to group related statements; separate such code with section comments instead.
-
-```cpp
-// Инициализация фильтра
-
-rfsim::NotchFilter flt;
-flt.init(path);
-```
-
-- Before `if`/`for` and after their closing `}` - a blank line (separates the block from surrounding code).
-
-```cpp
-const auto paths = parser.jammer_paths();
-
-for (const auto& path : paths) {
-  load_jammer(path);
-  register_jammer(path);
-}
-
-p2p.do_first_step();
-```
-
-```cpp
-const auto paths = parser.jammer_paths();
-
-for (const auto& path : paths)
-  load_jammer(path);
-
-p2p.do_first_step();
-```
-
-- Between adjacent C++ conditional branches (`if`/`else if`/`else`) - a blank line before each `else if` or `else` branch.
-
-```cpp
-if (model == "p525")
-  use_p525();
-
-else if (model == "p528")
-  use_p528();
-
-else
-  throw std::invalid_argument("[Config] Unknown model");
-```
-
-```cpp
-if (model == "p525") {
-  use_p525();
-  log_model(model);
-}
-
-else if (model == "p528") {
-  use_p528();
-  log_model(model);
-}
-
-else {
-  report_unknown_model(model);
-  throw std::invalid_argument("[Config] Unknown model: model=" + model);
-}
-```
-
-- Before `catch` - a blank line after the preceding `try` block closing brace.
-
-```cpp
-try {
-  cfg = rfsim::json_utils::load_file(path, SOURCE);
-}
-
-catch (const std::exception& e) {
-  throw std::runtime_error(e.what());
-}
-```
-
-- Before `return` - a blank line, except when `return` is in a one-line `if`/`for`, or when it is the only statement in a block (`function`, `try`, `catch`, etc.).
-
-```cpp
-const double loss_db = compute_loss(distance_km, freq_mhz);
-
-return loss_db + fading_margin_db;
-```
-
-- After variable declarations - a blank line **if** the variable is not used immediately. Between `Type var;` and `var.init(...)` on the next line - **no** blank line because they are one logical group. If the initialized variable is then used by the following command, put the blank line after the init command, for example:
-
-```cpp
-rfsim::NotchFilter flt;
-flt.init(path);
-
-p2p.receive(flt, GROUP_IDS.antenna_1);
-```
-
-- When initializing a struct/object field by field (`sig.id = ...; sig.freq = ...;`) - a blank line between declaration and the first assignment (separates declaration from multi-field population).
-
-```cpp
-rfsim::RFSignal sig;
-
-sig.id = id;
-sig.center_freq_hz = center_freq_hz;
-sig.tx_power_dbm = tx_power_dbm;
-```
-
-- Every struct field must have a short side comment explaining meaning and units, for example `double df_hz = 0.0;  // отстройка от несущей, Гц`.
-
-```cpp
-struct MaskPoint {
-  double df_hz = 0.0;  // отстройка от несущей, Гц
-  double a_db = 0.0;   // относительное ослабление, дБ
-};
-```
-
-- After a long wrapped line - a blank line before the next statement.
-
-```cpp
-throw std::invalid_argument("[P2PSignalHandler::init] Invalid JSON field: field=" +
-                            field_name + ", value=" + value);
-
-p2p.do_first_step();
-```
-
-- After a closing `// ---` section header - a blank line before the next statement.
-
-```cpp
-// -------------------------------------------------------------------------
-// Инициализация среды распространения
-// -------------------------------------------------------------------------
-
-rfsim::P2PSignalHandler p2p;
-```
-
-### Default Values
-
-- **Physical constants** (speed of light, kT0, PZ-90.11 constants, ITU-R formulas) are allowed as-is.
-- **Everything else** (coordinates, frequencies, powers, gains, NF, fading margin) must be set explicitly in JSON. Use explicit `0` when the physical value is zero; missing JSON fields must not silently become zero.
-- **Required fields** (`center_freq_hz`; standalone antenna `position/lat_deg`, `position/lon_deg`, `position/h_m`) use `rfsim::json_utils::required(...)` and throw if missing.
-- Attached antenna `position` is optional when its global state is updated through `Antenna::receive(VehicleDynState)`; `position_rel` is then applied on registration and every simulation step before publishing `AntennaDynState`.
-- Standalone antenna uses required `position` as its global position. Its `orientation_rel` is treated as global orientation, but `position_rel` is not treated as global position and does not replace `position`.
-- **Conversion functions** return the **result type** and throw on invalid values. No `bool` + out-parameters.
-
-Examples:
-
-```cpp
-const double CENTER_FREQ_HZ = rfsim::json_utils::required<double>(cfg, "/center_freq_hz", SOURCE);
-```
-
-```json
-{
-  "tx_power_dbm": 0.0,
-  "gain_max_dbi": 0.0,
-  "fading_margin_db": 3.0
-}
-```
-
-```cpp
-double hz_to_mhz(double freq_hz) {
-  if (freq_hz <= 0.0)
-    throw std::invalid_argument("[math::hz_to_mhz] Invalid frequency: freq_hz=" +
-                                std::to_string(freq_hz));
-
-  return freq_hz / 1.0e6;
-}
-```
+### Build System
+
+- The project uses **CMake** as its build system.
+- Never modify CMake files with `clang-format` — it destroys CMake syntax.
+- Regression/integration tests should be a standalone CMake project in a separate directory (e.g., `tests/`). Never include them from the root `CMakeLists.txt` or any primary CMake project.
+- Use `DCMAKE_BUILD_TYPE=Release` for production builds.
 
 ### Exceptions
 
-- Use standard C++ exceptions only: `std::invalid_argument` for invalid JSON/user input/enums, `std::runtime_error` for file I/O and environment failures, `std::logic_error` for invalid internal state or wrong API call order.
-- Exception text format: `[Source] Message: key=value, key=value`. `Source` is `Class::method` or `namespace::function`.
-- Always include the failing context: `path=...` for files, `field=...` for JSON fields, `sig_type=...`/`mask_type=...` for enums, `src_group=...` and `target_group=...` for P2P pairs.
-- Wrap `nlohmann::json` access through `rfsim::json_utils` helpers so raw JSON exceptions do not escape without source and field context.
-- Do not use `std::cerr + return` for critical library initialization or logging failures; throw an exception and let the application boundary handle it.
+- Use standard C++ exceptions: `std::invalid_argument` for invalid input/configuration, `std::runtime_error` for file I/O and environment failures, `std::logic_error` for invalid internal state or wrong API call order.
+- Wrap third-party JSON access through utility helpers so raw library exceptions do not escape without source and field context.
 - Application/test entry points catch `std::exception`, print `Error: <what()>`, and return non-zero.
 
-Examples:
+### Default Values & Configuration
+
+- **Physical constants** (speed of light, kT0, math constants) are allowed as-is.
+- **Everything else** (coordinates, frequencies, powers, gains, margins) must be set explicitly in configuration. Missing required fields must throw — do not silently default to zero.
+- **Required fields** use `json_utils::required(...)` — throws if the field is missing.
+- **Conversion functions** return the **result type** and throw on invalid values. No `bool` + out-parameters.
+
+## Testing Strategy
+
+### Unit Tests
+
+- Use a testing framework such as **Boost.Test** or **GoogleTest**.
+- Tests live in a separate directory (e.g., `tests/`).
+- Test files are named `test_<module>.cpp`.
+- Each test case should verify a single behavior.
 
 ```cpp
-if (mask_type == JammerMaskType::UNKNOWN)
-  throw std::invalid_argument("[Jammer::init] Invalid mask_type: mask_type=" + mask_type_str);
-```
-
-```cpp
-try {
-  run_model();
+// GoogleTest
+TEST(ComputeTest, ReturnsCorrectResult) {
+  EXPECT_EQ(compute(2, 3), 5);
 }
 
-catch (const std::exception& e) {
-  std::cerr << "Error: " << e.what() << std::endl;
+// -----------------------------------------------
 
-  return 1;
+// Boost.Test
+BOOST_AUTO_TEST_CASE(compute_returns_correct_result) {
+  BOOST_CHECK_EQUAL(compute(2, 3), 5);
 }
 ```
 
-## Repository Rules
+### Integration Tests
 
-- **Changes to RFSimLib and RFSimLib-Tests are committed to each repo separately.**
-- **ABSOLUTELY FORBIDDEN to run `git commit` or `git push` without an explicit user command.** Even if the build passes and tests run — the user decides when to commit.
-- Also forbidden: `git commit --amend`, `git rebase`, and any other history-altering operations without an explicit command.
+- Integration tests are a separate CMake project in `tests/integration/`.
+- Never include integration tests from the root `CMakeLists.txt` or any primary CMake project.
 
-Examples:
+### Regression Tests
 
-```text
-User: commit the current changes
-Agent: commit RFSimLib, RFSimLib-Tests, and root RFSim separately.
-```
+- For projects requiring long-term stability, maintain a separate regression test suite.
+- Run regression tests before every release or on CI.
 
-```text
-User: make the changes and run tests
-Agent: do not commit or push.
-```
+## Environment & Configuration
 
-## Scenario Structure
-
-```
-<scenario_name>/
-  scenario.json               <- required: sim_duration_s, dt_s, group_id
-  vehicle_1/vehicle.json
-  antenna_1/antenna.json
-  antenna_2/antenna.json
-  jammer_1/jammer.json
-  jammer_2/jammer.json        <- optional
-  P2P/p2p_signal_handler.json <- current scenarios use uppercase P2P
-  README.md                   <- required for committed scenarios
-```
+- Configuration is loaded from JSON files at startup. The configuration format and required fields should be documented in a `JSON.md` or equivalent file.
+- `.env.example` is a **committed template** — never use it directly in scripts or at runtime. It exists solely as documentation for developers.
+- `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
+- All shell scripts read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.

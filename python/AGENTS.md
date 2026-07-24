@@ -1,118 +1,208 @@
 # AGENTS.md
 
-## Project
+## Project & Profile
 
-_<Brief description of the project and its purpose.>_
+_Brief description of the project and its purpose._
 
-## Setup
+### Code style
+
+You MUST strictly follow the project's coding standards, naming conventions, and language-specific rules.
+
+Before generating, refactoring, or modifying any code, you are REQUIRED to read and apply the guidelines defined in the external style guide:
+
+- **File Path:** [`./CODE-STYLE.md`](./CODE-STYLE.md)
+
+_Instruction for Agent:_ If you haven't read `./CODE-STYLE.md` in the current session, use your file-reading tool to fetch its content before writing any code. Do not hallucinate styles.
+
+## Operational Rules & Critical Restrictions
+
+**UNDER NO CIRCUMSTANCES may you commit, push, amend, rebase, or modify the git history without an EXPLICIT instruction to do so.** This is the most important rule in this document. Violating it may result in lost work and broken branches.
+
+This specifically includes:
+
+- `git commit` / `git commit --amend` / `git commit -m "..."`
+- `git push` / `git push --force` / `git push --force-with-lease`
+- `git add` (stage for commit — prefer working-tree-only edits)
+- `git rebase` / `git reset` / `git checkout` (to modify branches)
+- Any other command that creates or alters commits
+
+If the user asks "what should the commit message be?" — **suggest a message but do NOT commit**. Wait for an explicit directive such as:
+
+- "commit"
+- "commit and push"
+- "закоммить"
+- "сделай коммит"
+
+**If the user says "обнови AGENTS.md" or similar — this is NOT a commit instruction. Do NOT add or commit files unless told to.**
+
+## Workflow & Verification Commands
+
+### Time limit (HARD REQUIREMENT)
+
+**Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
 
 ```bash
-uv sync                # installs dependencies and creates .venv
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
 ```
 
-## Verify after changes
+Long-running daemons must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
 
-Run **all** checks in this order - treat errors as blockers:
+### Setup
 
 ```bash
-ruff check .                    # lint
-ruff format --check .           # formatting
-pyright .                       # type-check (adjust path if necessary)
-python -m pytest tests/ -v      # unit tests
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "uv sync"
 ```
 
-**LSP is mandatory.** Configure `pyright-langserver` and `ruff server` in your
-editor. After every change, confirm lint, format, and type-check show **0
-errors**.
+### Verify after changes
 
-## Fix formatting & imports
+Run **all** checks in this order — treat errors as blockers:
 
 ```bash
-ruff check --fix . && ruff format .
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff check ."
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff format --check ."
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "pyright ."
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "python -m pytest tests/ -v"
 ```
 
-## Run a single test
+### Fix formatting & imports
 
 ```bash
-python -m pytest tests/test_file.py::test_name -v
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff check --fix . && ruff format ."
 ```
 
-## Code style
+**LSP is mandatory.** Configure `pyright-langserver` and `ruff server` in your editor. After every change, confirm lint, format, and type-check show **0 errors**. `ruff format` is the single source of truth for formatting — no `black`, no `isort`.
 
-### Indentation & layout
+### Run a single test
 
-- **2‑space indentation** everywhere.
-- **Line length**: 90 characters.
-- **2 blank lines** between top‑level definitions (functions, classes) and
-  after imports (`lines-after-imports = 2`).
-- **Blank line before control flow** - insert a blank line before every `if`,
-  `else`, `elif`, `for`, `while`, `try`, `except`, `finally`, `with`, `raise`,
-  `assert`, `return`, `continue` that sits at the same indentation level as its
-  containing block. Deeply nested one‑liners may omit the blank line.
+```bash
+scripts/python/.venv/Scripts/python scripts/python/timeouted.py "python -m pytest tests/test_file.py::test_name -v"
+```
 
-  ```python
-  # Good
-  result = compute()
+### Mandatory testing
 
-  if result is None:
-      return
+**Every change must be verified by running the test suite.** No exceptions. If any test fails, fix the issue before considering the change complete.
 
-  for item in items:
-      process(item)
+## Software Architecture & Design Patterns
+
+### Documentation
+
+- **Standalone Markdown documentation pages** → `SCREAMING_SNAKE_CASE` names (e.g., `CONFIG.md`, `ARCHITECTURE.md`, `CODE-STYLE.md`). Keep conventional repository files such as `README.md` unchanged unless explicitly requested.
+
+### Package Layout
+
+- Source code lives under `src/<project_name>/` (or directly in `<project_name>/` depending on preference). Choose one convention and stick to it.
+- Separate packages by concern — do not dump all classes in a single flat directory.
+- Example layout for a typical project:
+
+```
+src/myproject/
+  __init__.py           ← exports public API via __all__
+  core/                 ← domain logic, entities, services
+  cli/                  ← CLI entry points (typer/click)
+  api/                  ← HTTP API layer (if applicable)
+  config/               ← configuration models (pydantic/dataclass)
+  constants.py          ← shared constants
+  utils/                ← shared utility functions
+```
+
+- **Never create a `model.py` dumping ground.** Split types into explicit purpose modules (e.g., `entities.py`, `dto.py`, `enums.py`).
+
+### Separation of Concerns
+
+- **Core logic** lives in `core/` and has zero dependencies on CLI, HTTP, or file I/O. Pure domain logic only.
+- **CLI layer** delegates to core services — never contains business logic.
+- **Configuration** uses `pydantic.BaseModel` or `dataclasses.dataclass` for typed, validated settings loaded from environment, config files, or CLI arguments.
+
+### Dependency Management
+
+- Use **`uv`** for dependency management (recommended). Alternatives: `pip` with `requirements.txt`.
+- **Never edit `uv.lock` manually.** It is regenerated by `uv lock` or `uv sync` when dependencies change.
+- Dependencies are declared in `pyproject.toml`.
+
+### CLI Design
+
+- Use `typer` or `click` for CLI tools. For web APIs, use `fastapi` or `flask`.
+- Each command groups related operations — use subcommands for modularity.
+- CLI entry points handle argument parsing, then delegate to core services.
+- For CLI testing, use the appropriate test harness (e.g., `CliRunner`) and verify that output is captured correctly.
+
+```python
+# src/myproject/cli/main.py
+import typer
+
+
+app = typer.Typer()
+
+# ------------------------------------------------
+
+@app.command()
+def process(file: str):
+  """Process a file."""
+  result = service.process(file)
+  print(result)
+```
+
+### Exceptions
+
+- Define a custom exception hierarchy rooted in a `BaseError` (or use a library like `pydantic_core` for validation errors).
+- For HTTP APIs: return structured error responses, never let bare tracebacks leak to clients.
+- CLI entry points catch exceptions, log the error, and return a non-zero exit code.
+
+```python
+class BaseError(Exception):
+  """Base exception for application errors."""
+
+# ------------------------------------------------
+
+class NotFoundError(BaseError):
+  """Resource not found."""
+
+# ------------------------------------------------
+
+class ConflictError(BaseError):
+  """Resource conflict."""
+```
+
+## Testing Strategy
+
+- Use `pytest` as the test framework. See [`./CODE-STYLE.md`](./CODE-STYLE.md) for style rules (fixtures, parametrize, mocking, skipping, naming).
+
+### Unit Tests
+
+- Tests live in `tests/` mirroring the source structure.
+- Run unit tests: `timeouted.py "pytest tests/ -v --ignore=tests/integration"`.
+
+### Integration Tests
+
+- Place integration tests in `tests/integration/`. Use `@pytest.mark.integration` marker.
+- Run integration tests: `timeouted.py "pytest tests/integration/ -v -m \"integration\""`.
+- Run unit tests only: `timeouted.py "pytest tests/ -v -m \"not integration\""`.
+
+### Coverage
+
+- Aim for high coverage of core business logic. Use `pytest-cov` to measure:
+  ```bash
+  scripts/python/.venv/Scripts/python scripts/python/timeouted.py "pytest tests/ --cov=src/myproject --cov-report=term-missing"
   ```
 
-- **Endline after docstrings** - always put an extra blank line after a
-  function or class docstring.
+## Environment & Configuration
 
-  ```python
-  def my_func():
-      """Docstring."""
+- Use `pydantic.BaseModel` or `dataclasses.dataclass` for typed configuration classes. Use `pydantic-settings` to load `.env` into typed models.
+- Load settings from environment variables (`.env`) — never hardcode environment-specific values.
+- `.env.example` is a **committed template** — never use it directly in scripts or at runtime. It exists solely as documentation for developers.
+- `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
 
-      # code starts after a blank line
-      ...
-  ```
+```python
+from pydantic import BaseModel
 
-- **Hanging indentation** for long signatures and calls:
 
-  ```python
-  def func(
-    self,
-    arg1: str,
-    arg2: int,
-  ) -> ReturnType:
-      ...
-  ```
+class DatabaseConfig(BaseModel):
+  url: str
+  pool_size: int = 10
 
-### Imports
+# ------------------------------------------------
 
-- After editing imports, run `ruff check --fix` to sort them. Ruff’s `I` rule
-  handles ordering, grouping (stdlib → third‑party → project), and spacing.
-
-### Type annotations
-
-- Every function **must** have a return type annotation.
-- `pyright` runs in `basic` mode.
-
-### Exports
-
-- In `__init__.py` files, declare the public API with `__all__`. Ruff respects
-  `__all__`, so you don’t need `import X as X` or `# noqa` comments.
-
-### Naming
-
-- Prefer specific, descriptive names. Avoid ambiguous abbreviations.
-  - Example: `resolved_api_key` rather than `key` when multiple keys exist.
-
-## Testing quirks
-
-- If some tests depend on external resources (API keys, remote servers, etc.),
-  mark them to be skipped when those resources are unavailable. Use
-  `pytest -k "not test_pattern"` to exclude them during local runs.
-- For CLI testing, use the appropriate test harness (e.g., `CliRunner` for
-  Click/Typer) and verify that rich console output is captured correctly in
-  `result.stdout`.
-
-## Miscellaneous
-
-- **Never edit `uv.lock` manually.** It is regenerated by `uv lock` or
-  `uv sync` when dependencies change.
+class AppConfig(BaseModel):
+  db: DatabaseConfig
+  log_level: str = "INFO"
+```
