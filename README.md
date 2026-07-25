@@ -20,10 +20,10 @@
 
 Each language gets two files:
 
-| File            | Purpose                                                                                                                                    |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AGENTS.md`     | Architecture & process: project layout, layer separation, DI patterns, build/test/run commands, git restrictions, timeouted.py enforcement |
-| `CODE-STYLE.md` | Style rules: 2-space indentation, naming, blank lines, MARK comments with 50-char separators, constants, language constructs               |
+| File            | Purpose                                                                                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `AGENTS.md`     | Architecture & process: project layout, layer separation, DI patterns, build/test/run commands, git restrictions, time-d enforcement |
+| `CODE-STYLE.md` | Style rules: 2-space indentation, naming, blank lines, MARK comments with 50-char separators, constants, language constructs         |
 
 All three languages share the same section order, the same rules where applicable, and the same level of detail — so switching between projects is seamless for both humans and agents.
 
@@ -39,7 +39,7 @@ All three languages share the same section order, the same rules where applicabl
 | Formatter        | `.editorconfig` (IDE)  | `.clang-format`         | `ruff` (`ruff.toml`)   |
 | Testing          | JUnit 5                | Boost.Test / GoogleTest | pytest                 |
 | Build            | Gradle                 | CMake                   | uv                     |
-| Time limit       | timeouted.py (60s)     | timeouted.py (60s)      | timeouted.py (60s)     |
+| Time limit       | time-d (60s)           | time-d (60s)            | time-d (60s)           |
 | Git              | No commit without user | No commit without user  | No commit without user |
 
 ## Quick start
@@ -54,12 +54,19 @@ cp python/AGENTS.md python/CODE-STYLE.md   <your-python-project>/
 
 Replace the `<your-...-project>` placeholders with actual paths. The files are self-contained — no further customization required, though you may adapt them to your specific domain.
 
-## timeouted.py
+## time-d
 
-Every command the agent executes must be wrapped with `timeouted.py` to prevent indefinite hangs. The wrapper lives at `scripts/python/timeouted.py` and is invoked as:
+Every command the agent executes must be wrapped with `time-d` (from the `timeout-dead` package) to prevent indefinite hangs. Install once:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
+uv tool install timeout-dead   # or: pip install timeout-dead
+time-d --version                       # verify installation
+```
+
+Usage:
+
+```bash
+time-d "<your command>"
 ```
 
 Each `AGENTS.md` enforces this rule in the **Workflow & Verification Commands** section.

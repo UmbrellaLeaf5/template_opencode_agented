@@ -53,17 +53,24 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 **Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
+time-d "<your command>"
 ```
 
 Long-running daemons (server start) must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
+
+`time-d` is part of the `timeout-dead` package. Install once:
+
+```bash
+uv tool install timeout-dead   # or: pip install timeout-dead
+time-d --version                       # verify installation
+```
 
 ### Verify after changes
 
 Run **all** checks in this order — treat errors as blockers:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./gradlew build"
+time-d "./gradlew build"
 ```
 
 ### Mandatory testing
@@ -71,7 +78,7 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./gradlew build
 **Every change must be verified by running the test suite.** No exceptions.
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd app/src/test/python && uv run pytest"
+time-d "cd app/src/test/python && uv run pytest"
 ```
 
 All JVM tests in `./gradlew build` and all pytest integration tests must pass. If any test fails, fix the issue before considering the change complete.
@@ -81,15 +88,15 @@ All JVM tests in `./gradlew build` and all pytest integration tests must pass. I
 ### Start the application
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "cd .docker/db && docker compose up -d"
+time-d "cd .docker/db && docker compose up -d"
 ```
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "nohup java -jar app/build/libs/app-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
+time-d "nohup java -jar app/build/libs/app-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
 ```
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/health 2>/dev/null && echo ready && break; sleep 3; done"
+time-d "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/health 2>/dev/null && echo ready && break; sleep 3; done"
 ```
 
 ### Stop the application
@@ -97,7 +104,7 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for i in $(seq 
 **Always kill the server when done — do not leave it running indefinitely.**
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "for pid in \$(netstat -ano 2>/dev/null | grep ':8080.*LISTENING' | awk '{print \$NF}'); do taskkill -F -PID \$pid 2>/dev/null; done && echo port free"
+time-d "for pid in \$(netstat -ano 2>/dev/null | grep ':8080.*LISTENING' | awk '{print \$NF}'); do taskkill -F -PID \$pid 2>/dev/null; done && echo port free"
 ```
 
 Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkill` command above.
@@ -105,7 +112,7 @@ Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkil
 ### Setup
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./gradlew build"
+time-d "./gradlew build"
 ```
 
 This downloads dependencies and builds the project. For IDE: IntelliJ IDEA with Kotlin plugin is recommended. Open the project root directory and let Gradle sync.
@@ -412,18 +419,18 @@ If using an ORM (e.g., JPA/Hibernate):
 - Use **JUnit 5** (`@Test`, `@DisplayName`) for unit tests.
 - Tests live in `src/test/kotlin/` mirroring the main source structure.
 - Test file naming: `<Class>Test.kt`.
-- Run unit tests via `timeouted.py "./gradlew test"`.
+- Run unit tests via `time-d "./gradlew test"`.
 
 ### Integration Tests
 
 - Place integration tests in `src/test/kotlin/` with `@Tag("integration")` or under `integration/` package.
 - Use **Testcontainers** or **Spring Boot Test** for integration tests.
-- Run integration tests: `timeouted.py "./gradlew test -DincludeTags=\"integration\""`.
+- Run integration tests: `time-d "./gradlew test -DincludeTags=\"integration\""`.
 
 ### Coverage
 
 - Aim for high coverage of core business logic. Use **Jacoco** or **Kover** to measure coverage.
-- Run coverage report: `timeouted.py "./gradlew test jacocoTestReport"` (or `timeouted.py "./gradlew koverReport"`).
+- Run coverage report: `time-d "./gradlew test jacocoTestReport"` (or `time-d "./gradlew koverReport"`).
 
 ## Environment & Configuration
 

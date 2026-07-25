@@ -42,15 +42,22 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 **Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
+time-d "<your command>"
 ```
 
 Long-running daemons must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
 
+`time-d` is part of the `timeout-dead` package. Install once:
+
+```bash
+uv tool install timeout-dead   # or: pip install timeout-dead
+time-d --version                       # verify installation
+```
+
 ### Setup
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "uv sync"
+time-d "uv sync"
 ```
 
 ### Verify after changes
@@ -58,16 +65,16 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "uv sync"
 Run **all** checks in this order — treat errors as blockers:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff check ."
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff format --check ."
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "pyright ."
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "python -m pytest tests/ -v"
+time-d "ruff check ."
+time-d "ruff format --check ."
+time-d "pyright ."
+time-d "python -m pytest tests/ -v"
 ```
 
 ### Fix formatting & imports
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff check --fix . && ruff format ."
+time-d "ruff check --fix . && ruff format ."
 ```
 
 **LSP is mandatory.** Configure `pyright-langserver` and `ruff server` in your editor. After every change, confirm lint, format, and type-check show **0 errors**. `ruff format` is the single source of truth for formatting — no `black`, no `isort`.
@@ -75,7 +82,7 @@ scripts/python/.venv/Scripts/python scripts/python/timeouted.py "ruff check --fi
 ### Run a single test
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "python -m pytest tests/test_file.py::test_name -v"
+time-d "python -m pytest tests/test_file.py::test_name -v"
 ```
 
 ### Mandatory testing
@@ -170,19 +177,19 @@ class ConflictError(BaseError):
 ### Unit Tests
 
 - Tests live in `tests/` mirroring the source structure.
-- Run unit tests: `timeouted.py "pytest tests/ -v --ignore=tests/integration"`.
+- Run unit tests: `time-d "pytest tests/ -v --ignore=tests/integration"`.
 
 ### Integration Tests
 
 - Place integration tests in `tests/integration/`. Use `@pytest.mark.integration` marker.
-- Run integration tests: `timeouted.py "pytest tests/integration/ -v -m \"integration\""`.
-- Run unit tests only: `timeouted.py "pytest tests/ -v -m \"not integration\""`.
+- Run integration tests: `time-d "pytest tests/integration/ -v -m \"integration\""`.
+- Run unit tests only: `time-d "pytest tests/ -v -m \"not integration\""`.
 
 ### Coverage
 
 - Aim for high coverage of core business logic. Use `pytest-cov` to measure:
   ```bash
-  scripts/python/.venv/Scripts/python scripts/python/timeouted.py "pytest tests/ --cov=src/myproject --cov-report=term-missing"
+  time-d "pytest tests/ --cov=src/myproject --cov-report=term-missing"
   ```
 
 ## Environment & Configuration

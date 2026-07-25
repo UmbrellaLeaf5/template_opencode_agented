@@ -42,22 +42,29 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 **Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
 
 ```bash
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "<your command>"
+time-d "<your command>"
 ```
 
 Long-running daemons must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
+
+`time-d` is part of the `timeout-dead` package. Install once:
+
+```bash
+uv tool install timeout-dead   # or: pip install timeout-dead
+time-d --version                       # verify installation
+```
 
 ### Required Cycle After Any `.cpp/.h/.hpp` Change
 
 ```bash
 # 1. Formatting all changed files
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "clang-format -i \$(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)\$')"
+time-d "clang-format -i \$(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)\$')"
 
 # 2. Build (0 errors, 0 warnings)
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j\$(nproc)"
+time-d "mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j\$(nproc)"
 
 # 3. Run tests
-scripts/python/.venv/Scripts/python scripts/python/timeouted.py "./build/tests"
+time-d "./build/tests"
 ```
 
 ### Mandatory Testing
