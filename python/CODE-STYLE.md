@@ -33,7 +33,7 @@ All code-writing rules for Python projects.
   def get_user(user_id: str) -> User:
     ...
 
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def process(items: list[Item]) -> None:
     ...
@@ -276,7 +276,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   ```
 
 - Between peer-level definitions (top-level functions, member methods), use one of the following:
-  - A separator line (`# ------------------------------------------------`) alone — for trivial methods or private helpers
+  - A separator line (`# --------------------------------------------------`) alone — for trivial methods or private helpers
   - A MARK comment with a separator line — for important methods
   - A MARK comment for a group, with separator lines between methods within the group
 
@@ -286,7 +286,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   def compute_full(request: CalculationRequest) -> CalculationPlan | None:
     ...
 
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _compute_new_plan(
     request: CalculationRequest,
@@ -295,7 +295,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ...
 
   # MARK: Time-to-interaction calculation
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _calculate_interaction_time(
     item: ItemState,
@@ -305,11 +305,11 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ...
   ```
 
-  After a closing `# ------------------------------------------------` or `# MARK:` section header — a blank line before the next statement.
+  After a closing `# --------------------------------------------------` or `# MARK:` section header — a blank line before the next statement.
 
   ```python
   # MARK: Private Helpers
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _build_response(input: Any) -> Response:
     ...
@@ -330,7 +330,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   ):
 
     # MARK: calculateAndPersist
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def calculate_and_persist(
       entity: OrderEntity,
@@ -453,13 +453,13 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
 - Use MARK comments and separator lines to organise code into logical groups. Every non-trivial function is preceded by a MARK comment, and all functions are separated by section separator lines.
 
-- **Separator line is exactly 50 characters**: `# ` followed by 48 dashes (`# ------------------------------------------------`). Never use shorter or longer separators — always exactly 50 characters total.
+- **Separator line: exactly 50 dashes** (`# --------------------------------------------------`). Never use shorter or longer separators.
 
 - **Public methods** — Every non-trivial public method must be preceded by a `# MARK:` comment. The comment describes the method's purpose.
   - **Trivial methods** (single expression, one-liner) — a separator line alone is sufficient:
 
     ```python
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def get_user(user_id: str) -> User:
       return _repository.find_by_id(user_id)
@@ -469,7 +469,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
     ```python
     # MARK: calculateAndPersist
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def calculate_and_persist(
       entity: OrderEntity,
@@ -483,7 +483,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
     ```python
     # MARK: POST /api/order/calculate
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def calculate(order_id: str) -> OrderResponse:
       ...
@@ -493,50 +493,50 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
     ```python
     # MARK: Calculation helpers
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def calculate_time(...) -> float:
       ...
 
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def calculate_point(...) -> Point:
       ...
 
-    # ------------------------------------------------
+    # --------------------------------------------------
 
     def validate_calculation(...) -> None:
       ...
     ```
 
 - All private helpers must be grouped under a `# MARK: Private Helpers` section marker. Within this section:
-  - Most private methods use a separator line (`# ------------------------------------------------`) between them.
+  - Most private methods use a separator line (`# --------------------------------------------------`) between them.
   - Important private methods (complex algorithm, critical business logic) may get their own `# MARK:` comment.
 
   ```python
   # MARK: Private Helpers
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _build_response(...) -> Response:
     ...
 
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _validate_input(...) -> None:
     ...
 
   # MARK: Complex calculation algorithm
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _calculate_matrix(...) -> Matrix:
     ...
   ```
 
-- After a closing `# ------------------------------------------------` or `# MARK:` section header — a blank line before the next statement.
+- After a closing `# --------------------------------------------------` or `# MARK:` section header — a blank line before the next statement.
 
   ```python
   # MARK: Private Helpers
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def _build_response(...) -> Response:
     ...
@@ -553,7 +553,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
   ```python
   # MARK: calculateAndPersist
-  # ------------------------------------------------
+  # --------------------------------------------------
 
   def calculate_and_persist(
     entity: OrderEntity,
@@ -644,20 +644,20 @@ class Math:
   EARTH_RADIUS_M: float = 6_371_000.0
   DEG_TO_RAD: float = pi / 180.0
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class Entity:
   USER = "User"
   ORDER = "Order"
   PRODUCT = "Product"
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class Validation:
   INVALID_EMAIL = "Invalid email format"
   REQUIRED_FIELD = "Required field is missing"
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class Pattern:
   UUID_RE = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
@@ -691,7 +691,7 @@ from uuid import uuid4
 def sample_user() -> User:
   return User(id=uuid4(), fullname="Test User", email="test@example.com")
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 @pytest.mark.parametrize("name,valid", [
   ("Alice", True),
@@ -700,7 +700,7 @@ def sample_user() -> User:
 def test_validate_name(name: str, valid: bool):
   assert User.is_valid_name(name) == valid
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 @pytest.mark.skipif(not os.getenv("CI"), reason="Requires external service")
 def test_external_api():

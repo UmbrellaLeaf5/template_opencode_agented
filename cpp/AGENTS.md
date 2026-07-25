@@ -141,7 +141,7 @@ TEST(ComputeTest, ReturnsCorrectResult) {
   EXPECT_EQ(compute(2, 3), 5);
 }
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 // Boost.Test
 BOOST_AUTO_TEST_CASE(compute_returns_correct_result) {

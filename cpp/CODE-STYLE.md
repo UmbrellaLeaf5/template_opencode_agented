@@ -234,7 +234,7 @@ include/myproject/core/shared/Signal.hpp
   ```
 
 - Between peer-level definitions (top-level functions, member methods), use one of the following:
-  - A separator line (`// -----------------------------------------------`) alone — for trivial methods or private helpers
+  - A separator line (`// --------------------------------------------------`) alone — for trivial methods or private helpers
   - A MARK comment with a separator line — for important methods
   - A MARK comment for a group, with separator lines between methods within the group
 
@@ -245,7 +245,7 @@ include/myproject/core/shared/Signal.hpp
     ...
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   Plan compute_new_plan(
     const Request& request,
@@ -254,7 +254,7 @@ include/myproject/core/shared/Signal.hpp
   }
 
   // MARK: Time-to-interaction calculation
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   double calculate_time(
     const State& item,
@@ -277,7 +277,7 @@ include/myproject/core/shared/Signal.hpp
     PersistenceService& _persistence_service;
 
     // MARK: calculateAndPersist
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     void calculate_and_persist(
       const Entity& entity,
@@ -425,13 +425,13 @@ include/myproject/core/shared/Signal.hpp
 
 - Use section separators and MARK comments to organise code into logical groups. This is the same system used in Kotlin: every non-trivial function is preceded by a MARK comment, and all functions are separated by section separator lines.
 
-- **Separator line is exactly 50 characters**: `// ` followed by 47 dashes (`// -----------------------------------------------`). Never use shorter or longer separators — always exactly 50 characters total.
+- **Separator line: exactly 50 dashes** (`// --------------------------------------------------`). Never use shorter or longer separators.
 
 - **Public methods** — Every non-trivial public method must be preceded by a `// MARK:` comment. The comment describes the method's purpose.
   - **Trivial methods** (single expression, one-liner) — a separator line alone is sufficient:
 
     ```cpp
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     DataPoint get_point(const Id& id) const {
       return _repository.find_by_id(id);
@@ -442,7 +442,7 @@ include/myproject/core/shared/Signal.hpp
 
     ```cpp
     // MARK: processStep
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     void process_step(
       const Entity& entity,
@@ -456,44 +456,44 @@ include/myproject/core/shared/Signal.hpp
 
     ```cpp
     // MARK: Calculation helpers
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     void calculate_time(...) { ... }
 
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     void calculate_point(...) { ... }
 
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     void validate_calculation(...) { ... }
     ```
 
 - All private helpers must be grouped under a `// MARK: Private Helpers` section marker. Within this section:
-  - Most private methods use a separator line (`// -----------------------------------------------`) between them.
+  - Most private methods use a separator line (`// --------------------------------------------------`) between them.
   - Important private methods (complex algorithm, critical business logic) may get their own `// MARK:` comment.
 
   ```cpp
   // MARK: Private Helpers
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   void build_response(...) { ... }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   void validate_input(...) { ... }
 
   // MARK: Complex calculation algorithm
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   void calculate_matrix(...) { ... }
   ```
 
-- After a closing `// -----------------------------------------------` or `// MARK:` section header — a blank line before the next statement.
+- After a closing `// --------------------------------------------------` or `// MARK:` section header — a blank line before the next statement.
 
   ```cpp
   // MARK: Private Helpers
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   void build_response(...) { ... }
   ```
@@ -523,7 +523,7 @@ include/myproject/core/shared/Signal.hpp
 
   ```cpp
   // MARK: processStep
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   /**
    * @brief Вычисляет и сохраняет состояние для заданной сущности.
@@ -550,11 +550,11 @@ include/myproject/core/shared/Signal.hpp
   std::cout << "Loaded " << sources.size() << " source(s)" << std::endl;
   ```
 
-- Section separators in `.cpp` — use `// MARK:` comments and 47-dash separator lines (same as the general separator rules above):
+- Section separators in `.cpp` — use `// MARK:` comments and 50-dash separator lines (same as the general separator rules above):
 
   ```cpp
   // MARK: Инициализация среды обработки
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   Handler handler;
   ```
@@ -582,27 +582,27 @@ namespace math {
   constexpr double DEG_TO_RAD = M_PI / 180.0;
 }  // namespace math
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 namespace entity {
   constexpr const char* USER = "User";
   constexpr const char* ORDER = "Order";
 }  // namespace entity
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 namespace config {
   constexpr const char* CENTER_FREQ_HZ = "/center_freq_hz";
 }  // namespace config
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 namespace validation {
   constexpr const char* INVALID_FREQ = "Invalid frequency value";
   constexpr const char* REQUIRED_FIELD = "Required field is missing";
 }  // namespace validation
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 namespace pattern {
   // regex patterns if needed

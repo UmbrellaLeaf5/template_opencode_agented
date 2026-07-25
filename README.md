@@ -33,7 +33,7 @@ All three languages share the same section order, the same rules where applicabl
 | ---------------- | ---------------------- | ----------------------- | ---------------------- |
 | Indentation      | 2 spaces               | 2 spaces                | 2 spaces               |
 | Line length      | 100 chars              | 100 chars               | 100 chars              |
-| Separator        | `// ` + 47 dashes      | `// ` + 47 dashes       | `# ` + 48 dashes       |
+| Separator        | `// ` + 50 dashes      | `// ` + 50 dashes       | `# ` + 50 dashes       |
 | MARK comments    | `// MARK: Name`        | `// MARK: Name`         | `# MARK: Name`         |
 | Comment language | Russian                | Russian                 | Russian                |
 | Formatter        | `.editorconfig` (IDE)  | `.clang-format`         | `ruff` (`ruff.toml`)   |

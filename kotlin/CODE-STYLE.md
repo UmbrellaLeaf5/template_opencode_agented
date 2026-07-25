@@ -43,7 +43,7 @@ All code-writing rules for Kotlin projects.
     val userId = request.userId.requireFieldNotNullByName { "userId" }
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   // State validation — internal inconsistency
   fun executeOperation() {
@@ -201,7 +201,7 @@ All code-writing rules for Kotlin projects.
   ```
 
 - Between peer-level definitions (top-level functions, member methods), use one of the following:
-  - A separator line (`// -----------------------------------------------`) alone — for trivial methods or private helpers
+  - A separator line (`// --------------------------------------------------`) alone — for trivial methods or private helpers
   - A MARK comment with a separator line — for important methods
   - A MARK comment for a group, with separator lines between methods within the group
 
@@ -212,7 +212,7 @@ All code-writing rules for Kotlin projects.
     ...
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun computeNewPlan(
     request: CalculationRequest,
@@ -222,7 +222,7 @@ All code-writing rules for Kotlin projects.
   }
 
   // MARK: Time-to-interaction calculation
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun calculateInteractionTime(
     item: ItemState,
@@ -233,11 +233,11 @@ All code-writing rules for Kotlin projects.
   }
   ```
 
-  After a closing `// -----------------------------------------------` or `// MARK:` section header — a blank line before the next statement.
+  After a closing `// --------------------------------------------------` or `// MARK:` section header — a blank line before the next statement.
 
   ```kotlin
   // MARK: Private Helpers
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun buildResponse(input): Response
   ```
@@ -257,7 +257,7 @@ All code-writing rules for Kotlin projects.
   ) {
 
     // MARK: calculateAndPersist
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     @Transactional
     fun calculateAndPersist(
@@ -410,13 +410,13 @@ All code-writing rules for Kotlin projects.
 
 ## Comments
 
-- **Separator line is exactly 50 characters**: `// ` followed by 47 dashes (`// -----------------------------------------------`). Never use shorter or longer separators — always exactly 50 characters total.
+- **Separator line: exactly 50 dashes** (`// --------------------------------------------------`). Never use shorter or longer separators.
 
 - **Public methods** — Every non-trivial public method must be preceded by a `// MARK:` comment. The comment describes the method's purpose or, for endpoint methods, the HTTP path.
   - **Trivial methods** (single expression, one-liner) — a separator line alone is sufficient:
 
     ```kotlin
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     fun getUser(id: UUID): UserResponse =
       userRepository.findByIdOrThrow(id).let { mapper.toResponse(it) }
@@ -426,7 +426,7 @@ All code-writing rules for Kotlin projects.
 
     ```kotlin
     // MARK: calculateAndPersist
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     @Transactional
     fun calculateAndPersist(
@@ -442,35 +442,35 @@ All code-writing rules for Kotlin projects.
 
     ```kotlin
     // MARK: Calculation helpers
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     private fun calculateTime(...) { ... }
 
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     private fun calculatePoint(...) { ... }
 
-    // -----------------------------------------------
+    // --------------------------------------------------
 
     private fun validateCalculation(...) { ... }
     ```
 
 - All private helpers must be grouped under a `// MARK: Private Helpers` section marker. Within this section:
-  - Most private methods use a separator line (`// -----------------------------------------------`) between them.
+  - Most private methods use a separator line (`// --------------------------------------------------`) between them.
   - Important private methods (complex algorithm, critical business logic) may get their own `// MARK:` comment.
 
   ```kotlin
   // MARK: Private Helpers
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun buildResponse(...) { ... }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun validateInput(...) { ... }
 
   // MARK: Complex calculation algorithm
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun calculateMatrix(...) { ... }
   ```
@@ -479,7 +479,7 @@ All code-writing rules for Kotlin projects.
 
   ```kotlin
   // MARK: calculateAndPersist
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   /**
    * Вычисляет и сохраняет состояние для заданной сущности
@@ -516,18 +516,18 @@ All code-writing rules for Kotlin projects.
 
   ```kotlin
   // MARK: POST /api/order/calculate
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   @Transactional
   fun calculate(time: Instant): OrderResponse { ... }
 
   // MARK: Private Helpers
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun buildResponse(...) { ... }
 
   // MARK: Reuse existing context
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   private fun reuseContext(request: CalculationRequest): CalculationPlan?
   ```
@@ -579,21 +579,21 @@ object Constants {
     const val DEG_TO_RAD = PI / 180.0
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   object Entity {
     const val USER = "User"
     const val ORDER = "Order"
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   object Validation {
     const val INVALID_EMAIL = "Invalid email format"
     const val REQUIRED_FIELD = "Required field is missing"
   }
 
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   object Pattern {
     const val UUID_RE = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"

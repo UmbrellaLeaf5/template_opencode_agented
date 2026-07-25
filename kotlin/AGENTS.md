@@ -265,7 +265,7 @@ Instead of all of the above — **mappers only**.
 class UserMapper {
 
   // MARK: toResponse
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toResponse(user: User) = UserResponse(
     id = user.id.checkFieldNotNullByName { "id" },
@@ -276,7 +276,7 @@ class UserMapper {
   )
 
   // MARK: toEntity
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toEntity(request: UserCreateRequest) = User(
     fullname = request.validateAndGetFullname(),
@@ -293,7 +293,7 @@ class UserMapper {
 class ProductMapper {
 
   // MARK: toResponse
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toResponse(product: Product) = ProductResponse(
     id = product.id.checkFieldNotNullByName { "id" },
@@ -303,7 +303,7 @@ class ProductMapper {
   )
 
   // MARK: toSummaryResponse
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toSummaryResponse(product: Product) = ProductSummaryResponse(
     id = product.id.checkFieldNotNullByName { "id" },
@@ -312,7 +312,7 @@ class ProductMapper {
   )
 
   // MARK: toEntity
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toEntity(
     request: ProductCreateRequest,
@@ -335,7 +335,7 @@ class ProductMapper {
 class OrderMapper {
 
   // MARK: toResponse
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toResponse(
     order: Order,
@@ -349,7 +349,7 @@ class OrderMapper {
   )
 
   // MARK: toEntity
-  // -----------------------------------------------
+  // --------------------------------------------------
 
   fun toEntity(
     user: User,               // FK entity, resolved by the service
@@ -370,7 +370,7 @@ fun getUser(userIdString: String): UserResponse =
   userRepository.findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
     .let { userMapper.toResponse(it) }
 
-// -----------------------------------------------
+// --------------------------------------------------
 
 // Service resolves FK, mapper assembles the Entity:
 fun createOrder(

@@ -140,7 +140,7 @@ import typer
 
 app = typer.Typer()
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 @app.command()
 def process(file: str):
@@ -159,12 +159,12 @@ def process(file: str):
 class BaseError(Exception):
   """Base exception for application errors."""
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class NotFoundError(BaseError):
   """Resource not found."""
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class ConflictError(BaseError):
   """Resource conflict."""
@@ -207,7 +207,7 @@ class DatabaseConfig(BaseModel):
   url: str
   pool_size: int = 10
 
-# ------------------------------------------------
+# --------------------------------------------------
 
 class AppConfig(BaseModel):
   db: DatabaseConfig
