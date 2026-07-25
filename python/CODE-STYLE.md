@@ -249,7 +249,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 
 - **2 blank lines** between top-level definitions (functions, classes).
 - **2 blank lines** after the last import.
-- **1 blank line** between class methods.
+- **1 blank line** between member methods inside a class.
 
 - **Important:** Blank line rules may overlap. When multiple rules require a blank line at the same position, use exactly **one blank line**. Never use two or more consecutive blank lines.
 
@@ -275,18 +275,22 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   order.direction_lon = motion.direction_lon
   ```
 
-- Between peer-level definitions (top-level functions, member methods), use one of the following:
+- Between peer-level definitions, use one of the following:
   - A separator line (`# --------------------------------------------------`) alone — for trivial methods or private helpers
   - A MARK comment with a separator line — for important methods
   - A MARK comment for a group, with separator lines between methods within the group
 
   No naked blank lines between peer-level definitions — always use a separator or MARK.
 
+  **Top-level definitions** — 2 blank lines before and after the separator:
+
   ```python
   def compute_full(request: CalculationRequest) -> CalculationPlan | None:
     ...
 
+
   # --------------------------------------------------
+
 
   def _compute_new_plan(
     request: CalculationRequest,
@@ -297,6 +301,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   # MARK: Time-to-interaction calculation
   # --------------------------------------------------
 
+
   def _calculate_interaction_time(
     item: ItemState,
     target: TargetState,
@@ -305,13 +310,34 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ...
   ```
 
-  After a closing `# --------------------------------------------------` or `# MARK:` section header — a blank line before the next statement.
+  **Member methods inside a class** — 1 blank line before and after the separator:
+
+  ```python
+  class Calculator:
+    def calculate_time(...) -> float:
+      ...
+
+    # --------------------------------------------------
+
+    def calculate_point(...) -> Point:
+      ...
+
+    # --------------------------------------------------
+
+    def validate_calculation(...) -> None:
+      ...
+  ```
+
+- After a closing `# --------------------------------------------------` or `# MARK:` section header:
+  - **2 blank lines** before the next top-level statement
+  - **1 blank line** before the next member method
 
   ```python
   # MARK: Private Helpers
   # --------------------------------------------------
 
-  def _build_response(input: Any) -> Response:
+
+  def _build_response(...) -> Response:
     ...
   ```
 
@@ -461,6 +487,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ```python
     # --------------------------------------------------
 
+
     def get_user(user_id: str) -> User:
       return _repository.find_by_id(user_id)
     ```
@@ -470,6 +497,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ```python
     # MARK: calculateAndPersist
     # --------------------------------------------------
+
 
     def calculate_and_persist(
       entity: OrderEntity,
@@ -485,6 +513,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     # MARK: POST /api/order/calculate
     # --------------------------------------------------
 
+
     def calculate(order_id: str) -> OrderResponse:
       ...
     ```
@@ -495,15 +524,18 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     # MARK: Calculation helpers
     # --------------------------------------------------
 
+
     def calculate_time(...) -> float:
       ...
 
     # --------------------------------------------------
 
+
     def calculate_point(...) -> Point:
       ...
 
     # --------------------------------------------------
+
 
     def validate_calculation(...) -> None:
       ...
