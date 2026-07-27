@@ -355,7 +355,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     persistence_service: PersistenceService,
   ):
 
-    # MARK: calculateAndPersist
+    # MARK: Calculate and persist
     # --------------------------------------------------
 
     def calculate_and_persist(
@@ -495,7 +495,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   - **Non-trivial methods** — require a full MARK comment:
 
     ```python
-    # MARK: calculateAndPersist
+    # MARK: Calculate and persist
     # --------------------------------------------------
 
 
@@ -578,13 +578,14 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
   - `# MARK: POST /api/order/calculate`
   - `# MARK: Private Helpers`
   - `# MARK: Time-to-interaction calculation`
+- `# MARK:` text must be a readable English phrase, not a function or method identifier. Do not use camelCase or PascalCase names such as `calculateAndPersist` or `BuildResponse` in MARK comments.
 
 ### Docstrings
 
 - Every non-trivial public function must have a multi-line docstring placed immediately before the function body, after the MARK/separator:
 
   ```python
-  # MARK: calculateAndPersist
+  # MARK: Calculate and persist
   # --------------------------------------------------
 
   def calculate_and_persist(

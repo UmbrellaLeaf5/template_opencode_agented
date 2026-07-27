@@ -264,7 +264,7 @@ Instead of all of the above — **mappers only**.
 @Component
 class UserMapper {
 
-  // MARK: toResponse
+  // MARK: Convert to response
   // --------------------------------------------------
 
   fun toResponse(user: User) = UserResponse(
@@ -275,7 +275,7 @@ class UserMapper {
     updatedAt = user.updatedAt,
   )
 
-  // MARK: toEntity
+  // MARK: Convert to entity
   // --------------------------------------------------
 
   fun toEntity(request: UserCreateRequest) = User(
@@ -292,7 +292,7 @@ class UserMapper {
 @Component
 class ProductMapper {
 
-  // MARK: toResponse
+  // MARK: Convert to response
   // --------------------------------------------------
 
   fun toResponse(product: Product) = ProductResponse(
@@ -302,7 +302,7 @@ class ProductMapper {
     status = product.status,
   )
 
-  // MARK: toSummaryResponse
+  // MARK: Convert to summary response
   // --------------------------------------------------
 
   fun toSummaryResponse(product: Product) = ProductSummaryResponse(
@@ -311,7 +311,7 @@ class ProductMapper {
     error = product.error,
   )
 
-  // MARK: toEntity
+  // MARK: Convert to entity
   // --------------------------------------------------
 
   fun toEntity(
@@ -334,7 +334,7 @@ class ProductMapper {
 @Component
 class OrderMapper {
 
-  // MARK: toResponse
+  // MARK: Convert to response
   // --------------------------------------------------
 
   fun toResponse(
@@ -348,7 +348,7 @@ class OrderMapper {
     productIds = productIds,
   )
 
-  // MARK: toEntity
+  // MARK: Convert to entity
   // --------------------------------------------------
 
   fun toEntity(

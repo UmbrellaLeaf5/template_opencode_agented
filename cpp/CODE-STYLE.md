@@ -276,7 +276,7 @@ include/myproject/core/shared/Signal.hpp
     StateService& _state_service;
     PersistenceService& _persistence_service;
 
-    // MARK: calculateAndPersist
+    // MARK: Calculate and persist
     // --------------------------------------------------
 
     void calculate_and_persist(
@@ -441,7 +441,7 @@ include/myproject/core/shared/Signal.hpp
   - **Non-trivial methods** — require a full MARK comment:
 
     ```cpp
-    // MARK: processStep
+    // MARK: Process step
     // --------------------------------------------------
 
     void process_step(
@@ -499,9 +499,10 @@ include/myproject/core/shared/Signal.hpp
   ```
 
 - After `// MARK:` the text must start with a **capital letter** or be in **ALL CAPS**:
-  - `// MARK: processStep`
+  - `// MARK: Process step`
   - `// MARK: Private Helpers`
   - `// MARK: Time-to-interaction calculation`
+- `// MARK:` text must be a readable English phrase, not a function or method identifier. Do not use camelCase or PascalCase names such as `processStep` or `GetReceivedPowerDbm` in MARK comments.
 
 - **Every struct field** must have a short side comment explaining meaning and units where not obvious from naming. Self-explanatory fields (e.g. `id`, `name`) don't need a comment.
 
@@ -522,7 +523,7 @@ include/myproject/core/shared/Signal.hpp
 - The Doxygen block is separated from the MARK/separator by one blank line and sits directly above the function with no blank line between KDoc and the function.
 
   ```cpp
-  // MARK: processStep
+  // MARK: Process step
   // --------------------------------------------------
 
   /**

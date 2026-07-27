@@ -256,7 +256,7 @@ All code-writing rules for Kotlin projects.
     private val persistenceService: PersistenceService,
   ) {
 
-    // MARK: calculateAndPersist
+    // MARK: Calculate and persist
     // --------------------------------------------------
 
     @Transactional
@@ -425,7 +425,7 @@ All code-writing rules for Kotlin projects.
   - **Non-trivial methods** — require a full MARK comment:
 
     ```kotlin
-    // MARK: calculateAndPersist
+    // MARK: Calculate and persist
     // --------------------------------------------------
 
     @Transactional
@@ -478,7 +478,7 @@ All code-writing rules for Kotlin projects.
 - **KDoc** — Every long or important function must have a multi-line KDoc placed immediately before the function, after the blank-line separator:
 
   ```kotlin
-  // MARK: calculateAndPersist
+  // MARK: Calculate and persist
   // --------------------------------------------------
 
   /**
@@ -511,6 +511,7 @@ All code-writing rules for Kotlin projects.
   - `// MARK: POST /api/order/calculate`
   - `// MARK: Private Helpers`
   - `// MARK: Time-to-interaction calculation`
+- `// MARK:` text must be a readable English phrase, not a function or method identifier. Do not use camelCase or PascalCase names such as `calculateAndPersist` or `ToResponse` in MARK comments.
 - Regular (non-MARK) comments may start with either a capital or lowercase letter.
 - Format (remember about blank lines!):
 
