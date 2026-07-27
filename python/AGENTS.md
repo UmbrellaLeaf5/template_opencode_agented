@@ -26,6 +26,8 @@ This specifically includes:
 - `git rebase` / `git reset` / `git checkout` (to modify branches)
 - Any other command that creates or alters commits
 
+**NEVER commit while Git is in detached `HEAD` state.** Before any commit, verify that the repository is on the intended working branch (for example with `git branch --show-current` or `git status`). If the current branch is empty, ambiguous, or not clearly the user's active working branch, stop and ask the user which branch to use before committing.
+
 If the user asks "what should the commit message be?" — **suggest a message but do NOT commit**. Wait for an explicit directive such as:
 
 - "commit"
@@ -44,6 +46,14 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 ```bash
 time-d "<your command>"
 ```
+
+For commands that are expected to legitimately take longer than 60 seconds (full builds, full test suites, dependency syncs, large format/lint runs), use an explicit timeout:
+
+```bash
+time-d --sec <seconds> "<your command>"
+```
+
+Choose the smallest reasonable timeout for the command. Do not use a longer timeout to hide a hung process.
 
 Long-running daemons must use `nohup ... >/dev/null 2>&1 &` so the wrapper returns immediately.
 
