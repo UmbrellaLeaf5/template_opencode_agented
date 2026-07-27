@@ -564,6 +564,18 @@ include/myproject/core/shared/Signal.hpp
 
 - **No magic values anywhere in code.** This applies to **all** literal types: string literals (`"user"`, `"/config/path"`), numeric constants (`3.14`, `86400`, `4096`), and any other hardcoded value that carries domain meaning. Every shared value must be defined in exactly one central location.
 
+- **Absolute paths are forbidden in code under all circumstances.** Never hardcode machine-specific paths such as `/home/user/project`, `C:\\Users\\user\\project`, or `/tmp/data.csv` in source code, tests, generated configs, or examples intended to be copied into code. Build paths from relative paths, `std::filesystem::current_path()`, environment variables, CLI arguments, or configuration values instead. Absolute paths are allowed only in console commands or shell snippets that a user runs manually.
+
+  ```cpp
+  // Good
+  const std::filesystem::path data_path = std::filesystem::path("data") / "input.csv";
+  const std::filesystem::path cache_dir = std::filesystem::current_path() / "cache";
+
+  // Bad
+  const std::filesystem::path data_path = "/home/user/project/data/input.csv";
+  const std::filesystem::path cache_dir = "C:\\Users\\user\\project\\cache";
+  ```
+
 - **The only permissible inline literals** are:
   - Unit conversion factors (`1e6`, `1e-3`, `1000`) — values that only translate between measurement units, never domain logic
   - Precision/sentinel constants (`1e-9`, `-1`) — values that define computational precision or "no value" markers
