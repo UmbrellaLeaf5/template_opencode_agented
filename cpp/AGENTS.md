@@ -41,16 +41,18 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 
 ### Time limit (HARD REQUIREMENT)
 
-**Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
+**Every non-interactive bash command MUST complete within 60 seconds.** All non-interactive commands must be invoked through the timeout wrapper with captured output:
 
 ```bash
-time-d "<your command>"
+time-d -c "<your command>"
 ```
+
+Use `time-d -c` by default for every non-interactive command. Use plain `time-d` without `-c` only for genuinely interactive commands that require a TTY, such as `vim`, `python -i`, REPLs, or terminal UI tools.
 
 For commands that are expected to legitimately take longer than 60 seconds (full builds, full test suites, dependency syncs, large format/lint runs), use an explicit timeout:
 
 ```bash
-time-d --sec <seconds> "<your command>"
+time-d -c --sec <seconds> "<your command>"
 ```
 
 Choose the smallest reasonable timeout for the command. Do not use a longer timeout to hide a hung process.
@@ -68,13 +70,13 @@ time-d --version                       # verify installation
 
 ```bash
 # 1. Formatting all changed files
-time-d "clang-format -i \$(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)\$')"
+time-d -c "clang-format -i \$(git diff --name-only --diff-filter=AM HEAD | grep -E '\.(cpp|h|hpp)\$')"
 
 # 2. Build (0 errors, 0 warnings)
-time-d "mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j\$(nproc)"
+time-d -c --sec 300 "mkdir -p build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j\$(nproc)"
 
 # 3. Run tests
-time-d "./build/tests"
+time-d -c "./build/tests"
 ```
 
 ### Mandatory Testing

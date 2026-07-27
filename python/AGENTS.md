@@ -41,16 +41,18 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 
 ### Time limit (HARD REQUIREMENT)
 
-**Every bash command MUST complete within 60 seconds.** All commands must be invoked through the timeout wrapper:
+**Every non-interactive bash command MUST complete within 60 seconds.** All non-interactive commands must be invoked through the timeout wrapper with captured output:
 
 ```bash
-time-d "<your command>"
+time-d -c "<your command>"
 ```
+
+Use `time-d -c` by default for every non-interactive command. Use plain `time-d` without `-c` only for genuinely interactive commands that require a TTY, such as `vim`, `python -i`, REPLs, or terminal UI tools.
 
 For commands that are expected to legitimately take longer than 60 seconds (full builds, full test suites, dependency syncs, large format/lint runs), use an explicit timeout:
 
 ```bash
-time-d --sec <seconds> "<your command>"
+time-d -c --sec <seconds> "<your command>"
 ```
 
 Choose the smallest reasonable timeout for the command. Do not use a longer timeout to hide a hung process.
@@ -67,7 +69,7 @@ time-d --version                       # verify installation
 ### Setup
 
 ```bash
-time-d "uv sync"
+time-d -c --sec 300 "uv sync"
 ```
 
 ### Verify after changes
@@ -75,16 +77,16 @@ time-d "uv sync"
 Run **all** checks in this order — treat errors as blockers:
 
 ```bash
-time-d "ruff check ."
-time-d "ruff format --check ."
-time-d "pyright ."
-time-d "python -m pytest tests/ -v"
+time-d -c "ruff check ."
+time-d -c "ruff format --check ."
+time-d -c "pyright ."
+time-d -c --sec 300 "python -m pytest tests/ -v"
 ```
 
 ### Fix formatting & imports
 
 ```bash
-time-d "ruff check --fix . && ruff format ."
+time-d -c "ruff check --fix . && ruff format ."
 ```
 
 **LSP is mandatory.** Configure `pyright-langserver` and `ruff server` in your editor. After every change, confirm lint, format, and type-check show **0 errors**. `ruff format` is the single source of truth for formatting — no `black`, no `isort`.
@@ -92,7 +94,7 @@ time-d "ruff check --fix . && ruff format ."
 ### Run a single test
 
 ```bash
-time-d "python -m pytest tests/test_file.py::test_name -v"
+time-d -c "python -m pytest tests/test_file.py::test_name -v"
 ```
 
 ### Mandatory testing
@@ -187,19 +189,19 @@ class ConflictError(BaseError):
 ### Unit Tests
 
 - Tests live in `tests/` mirroring the source structure.
-- Run unit tests: `time-d "pytest tests/ -v --ignore=tests/integration"`.
+- Run unit tests: `time-d -c --sec 300 "pytest tests/ -v --ignore=tests/integration"`.
 
 ### Integration Tests
 
 - Place integration tests in `tests/integration/`. Use `@pytest.mark.integration` marker.
-- Run integration tests: `time-d "pytest tests/integration/ -v -m \"integration\""`.
-- Run unit tests only: `time-d "pytest tests/ -v -m \"not integration\""`.
+- Run integration tests: `time-d -c --sec 300 "pytest tests/integration/ -v -m \"integration\""`.
+- Run unit tests only: `time-d -c --sec 300 "pytest tests/ -v -m \"not integration\""`.
 
 ### Coverage
 
 - Aim for high coverage of core business logic. Use `pytest-cov` to measure:
   ```bash
-  time-d "pytest tests/ --cov=src/myproject --cov-report=term-missing"
+  time-d -c --sec 300 "pytest tests/ --cov=src/myproject --cov-report=term-missing"
   ```
 
 ## Environment & Configuration
