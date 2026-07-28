@@ -27,6 +27,8 @@ All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This fil
 
 - Keep cells short and purpose-specific. A cell should load data, configure a plot, render a plot, or explain a result - not mix all of these responsibilities.
 
+- Section-level code cells must be at most 15 lines. If a section grows beyond that, split it into smaller cells or move reusable logic into a utility module.
+
 - Do not add empty cells or trailing whitespace-only cells. If a cell exists, it must have a clear purpose.
 
 ## Language Usage
@@ -132,6 +134,8 @@ All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This fil
 - Add a blank line before `plt.tight_layout()`.
 
 - Do not add extra blank lines solely at the end of a cell.
+
+- Standard separator comments from Python files (`# --------------------------------------------------`) are optional in notebooks. Prefer ending the current cell and continuing in the next cell instead of adding separator-only comments.
 
 ## Comments
 
@@ -247,7 +251,7 @@ All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This fil
   time-d -c --sec 300 "jupyter nbconvert --to notebook --execute notebooks/example.ipynb --inplace"
   ```
 
-- If the project keeps notebook outputs under version control, verify that updated outputs are intentional. Clear stale crash outputs before committing.
+- Do not clear notebook outputs before committing. If the project keeps notebook outputs under version control, verify that updated outputs are intentional and reproducible. Clear only stale crash outputs or accidental noisy outputs.
 
 - If a notebook depends on generated logs or large external artifacts, validate paths at the top of the notebook and fail with a clear error.
 

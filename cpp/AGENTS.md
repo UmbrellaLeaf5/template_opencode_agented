@@ -138,6 +138,21 @@ src/core/Processor.cpp
 - **Required fields** use `json_utils::required(...)` — throws if the field is missing.
 - **Conversion functions** return the **result type** and throw on invalid values. No `bool` + out-parameters.
 
+```cpp
+const double center_freq_hz = json_utils::required<double>(cfg, "/center_freq_hz", SOURCE);
+```
+
+```cpp
+double hz_to_mhz(double freq_hz) {
+  if (freq_hz <= 0.0)
+    throw std::invalid_argument(
+      "[math::hz_to_mhz] Invalid frequency: freq_hz=" +
+      std::to_string(freq_hz));
+
+  return freq_hz / 1.0e6;
+}
+```
+
 ## Testing Strategy
 
 ### Unit Tests
@@ -177,3 +192,4 @@ BOOST_AUTO_TEST_CASE(compute_returns_correct_result) {
 - `.env.example` is a **committed template** — never use it directly in scripts or at runtime. It exists solely as documentation for developers.
 - `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
 - All shell scripts read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.
+- Absolute paths are forbidden in code under all circumstances. Never hardcode machine-specific paths such as `/home/user/project`, `C:\\Users\\user\\project`, or `/tmp/data.csv` in source code, tests, generated configs, or examples intended to be copied into code. Build paths from relative paths, `std::filesystem::current_path()`, environment variables, CLI arguments, or configuration values instead. Absolute paths are allowed only in console commands or shell snippets that a user runs manually.

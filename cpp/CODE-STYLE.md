@@ -130,28 +130,6 @@ All code-writing rules for C++ projects.
   flt.init(path);
   ```
 
-### Configuration Values & Conversion
-
-- **Physical constants** (speed of light, kT0, ITU-R formulas) are allowed as-is.
-- **Everything else** (coordinates, frequencies, powers, gains, NF, margins) must be set explicitly in configuration. Use explicit `0` when the physical value is zero; missing config fields must not silently become zero.
-- **Required fields** use a utility function (e.g., `json_utils::required(...)`) that throws if the field is missing.
-- **Conversion functions** return the **result type** and throw on invalid values. No `bool` + out-parameters.
-
-  ```cpp
-  const double center_freq_hz = json_utils::required<double>(cfg, "/center_freq_hz", SOURCE);
-  ```
-
-  ```cpp
-  double hz_to_mhz(double freq_hz) {
-    if (freq_hz <= 0.0)
-      throw std::invalid_argument(
-        "[math::hz_to_mhz] Invalid frequency: freq_hz=" +
-        std::to_string(freq_hz));
-
-    return freq_hz / 1.0e6;
-  }
-  ```
-
 ## Naming Conventions
 
 - **Classes, structs, enums** → `PascalCase` (e.g. `SignalHandler`, `DynState`, `ConfigPoint`)
@@ -563,18 +541,6 @@ include/myproject/core/shared/Signal.hpp
 ## Constants
 
 - **No magic values anywhere in code.** This applies to **all** literal types: string literals (`"user"`, `"/config/path"`), numeric constants (`3.14`, `86400`, `4096`), and any other hardcoded value that carries domain meaning. Every shared value must be defined in exactly one central location.
-
-- **Absolute paths are forbidden in code under all circumstances.** Never hardcode machine-specific paths such as `/home/user/project`, `C:\\Users\\user\\project`, or `/tmp/data.csv` in source code, tests, generated configs, or examples intended to be copied into code. Build paths from relative paths, `std::filesystem::current_path()`, environment variables, CLI arguments, or configuration values instead. Absolute paths are allowed only in console commands or shell snippets that a user runs manually.
-
-  ```cpp
-  // Good
-  const std::filesystem::path data_path = std::filesystem::path("data") / "input.csv";
-  const std::filesystem::path cache_dir = std::filesystem::current_path() / "cache";
-
-  // Bad
-  const std::filesystem::path data_path = "/home/user/project/data/input.csv";
-  const std::filesystem::path cache_dir = "C:\\Users\\user\\project\\cache";
-  ```
 
 - **The only permissible inline literals** are:
   - Unit conversion factors (`1e6`, `1e-3`, `1000`) — values that only translate between measurement units, never domain logic

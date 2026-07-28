@@ -205,7 +205,39 @@ This downloads dependencies and builds the project. For IDE: IntelliJ IDEA with 
 
 - **`*Service` naming** — Only classes that directly implement controller endpoint operations (i.e., are injected into controllers and called from controller methods) may have the `Service` suffix. All other supporting classes (internal helpers, calculators, validators, etc.) must use descriptive names without the `Service` suffix, such as `*Calculator`, `*Validator`, `*Helper`, `*Manager`, or domain-specific names.
 
-- **Service responsibilities** — A `*Service` class orchestrates the endpoint flow: validating input, calling repositories, invoking mappers, and coordinating other components. It does not contain complex algorithms or low‑level logic — those belong to separate internal classes.
+- **Service responsibilities** — Every `*Service` class without exception is a thin controller-facing service. It orchestrates the endpoint flow: validating input, calling repositories, invoking mappers, and coordinating other components. It does not contain complex algorithms, low-level logic, hidden implementation details, or multi-step domain workflows — those belong to separate dependency classes.
+
+- **Private methods in services** — Small private service methods are allowed only when they are genuinely justified and stay small. If a private method grows, contains branching business logic, hides implementation details, or becomes reusable, move it into a separate class and inject that class into the service.
+
+- **Implementation depth** — Any logic deeper than controller-facing orchestration must live in dedicated classes used by services as dependencies (handlers, calculators, validators, planners, processors, builders, etc.). Example flow:
+
+  ```text
+  REST API -> SituationController -> SituationService -> SituationPatchHandler
+  ```
+
+- Supporting classes must not use the `Service` suffix. Use precise names such as `SituationPatchHandler`, `InterceptionCalculator`, `InputValidator`, `ResponseBuilder`, `StatePlanner`, or `EventProcessor`.
+
+- Service methods should read as orchestration: load state, delegate deeper logic, persist changes, map the response.
+
+  ```kotlin
+  @Service
+  class SituationService(
+    private val situationRepository: SituationRepository,
+    private val situationMapper: SituationMapper,
+    private val situationPatchHandler: SituationPatchHandler,
+  ) {
+
+    @Transactional
+    fun patchSituation(request: SituationPatchRequest): SituationResponse {
+      val situation = situationRepository.findActiveOrThrow()
+      val patched = situationPatchHandler.patch(situation, request)
+      val saved = situationRepository.save(patched)
+
+      return situationMapper.toResponse(saved)
+    }
+
+  }
+  ```
 
 ### Mappers
 
@@ -450,4 +482,8 @@ If using an ORM (e.g., JPA/Hibernate):
 - `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
 - All shell scripts read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.
 - The application configuration loads `.env` via the appropriate mechanism (e.g., `spring.config.import: optional:file:.env` for Spring Boot).
-- Minimize environment-variable defaults. Never add `.env` defaults in Kotlin code, annotations, constants, services, or configuration classes. If a default is truly justified, define it only in `application.yaml` / `application.yml`; never use defaults that silently fall back to `localhost`, fixed ports, local database names, users, passwords, hosts, or URLs.
+- Minimize environment-variable defaults. Defaults are allowed only when the application genuinely always runs with the same value and that value is not environment-specific.
+- Never use defaults that silently switch infrastructure to `localhost`, fixed ports, local database names, users, passwords, hosts, URLs, or other deployment-specific values. Required environment variables must fail fast when absent.
+- If a default value is justified, the only valid place to define it is `application.yaml` / `application.yml`. Do not define `.env` defaults in annotations, constants, service fields, configuration classes, scheduled-task annotations, or any other Kotlin code.
+- Do not add defaults mechanically. For every default, ask whether missing configuration should instead fail startup. Prefer explicit required configuration over convenient local fallbacks.
+- Absolute paths are forbidden in code under all circumstances. Never hardcode machine-specific paths such as `/home/user/project`, `C:\\Users\\user\\project`, or `/tmp/data.csv` in source code, tests, generated configs, or examples intended to be copied into code. Build paths from relative paths, `Path.of("").toAbsolutePath()`, environment variables, CLI arguments, or configuration values instead. Absolute paths are allowed only in console commands or shell snippets that a user runs manually.
