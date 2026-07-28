@@ -450,3 +450,4 @@ If using an ORM (e.g., JPA/Hibernate):
 - `.env` is the **actual runtime file** (git-ignored). Developers copy `.env.example` to `.env` and fill in their local values.
 - All shell scripts read `.env` first, falling back to `.env.example` with a warning only if `.env` is absent.
 - The application configuration loads `.env` via the appropriate mechanism (e.g., `spring.config.import: optional:file:.env` for Spring Boot).
+- Minimize environment-variable defaults. Never add `.env` defaults in Kotlin code, annotations, constants, services, or configuration classes. If a default is truly justified, define it only in `application.yaml` / `application.yml`; never use defaults that silently fall back to `localhost`, fixed ports, local database names, users, passwords, hosts, or URLs.
