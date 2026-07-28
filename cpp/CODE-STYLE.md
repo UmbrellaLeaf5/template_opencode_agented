@@ -2,6 +2,17 @@
 
 All code-writing rules for C++ projects.
 
+## Table of Contents
+
+- [Indentation & Layout](#indentation--layout)
+- [Language Usage](#language-usage)
+- [Naming Conventions](#naming-conventions)
+- [File Structure](#file-structure)
+- [Blank Lines](#blank-lines)
+- [Comments](#comments)
+- [Constants](#constants)
+- [Exceptions (Style)](#exceptions-style)
+
 ---
 
 ## Indentation & Layout

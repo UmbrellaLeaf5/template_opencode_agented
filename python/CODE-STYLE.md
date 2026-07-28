@@ -2,6 +2,17 @@
 
 All code-writing rules for Python projects.
 
+## Table of Contents
+
+- [Indentation & Layout](#indentation--layout)
+- [Language Usage](#language-usage)
+- [Imports](#imports)
+- [Naming Conventions](#naming-conventions)
+- [Blank Lines](#blank-lines)
+- [Comments](#comments)
+- [Constants](#constants)
+- [Testing](#testing)
+
 ---
 
 ## Indentation & Layout

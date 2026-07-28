@@ -1,5 +1,14 @@
 # AGENTS.md
 
+## Table of Contents
+
+- [Project & Profile](#project--profile)
+- [Operational Rules & Critical Restrictions](#operational-rules--critical-restrictions)
+- [Workflow & Verification Commands](#workflow--verification-commands)
+- [Software Architecture & Design Patterns](#software-architecture--design-patterns)
+- [Testing Strategy](#testing-strategy)
+- [Environment & Configuration](#environment--configuration)
+
 ## Project & Profile
 
 _Brief description of the project and its purpose._

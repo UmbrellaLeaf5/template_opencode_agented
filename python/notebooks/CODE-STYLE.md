@@ -8,6 +8,18 @@ These rules **extend** the base Python style guide and do not replace it:
 
 All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This file only defines notebook-specific rules that are not already covered by the base Python guide.
 
+## Table of Contents
+
+- [Indentation & Layout](#indentation--layout)
+- [Language Usage](#language-usage)
+- [Imports](#imports)
+- [Naming Conventions](#naming-conventions)
+- [Blank Lines](#blank-lines)
+- [Comments](#comments)
+- [Constants](#constants)
+- [Plotting Rules](#plotting-rules)
+- [Testing](#testing)
+
 ---
 
 ## Indentation & Layout

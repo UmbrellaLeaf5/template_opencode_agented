@@ -2,6 +2,16 @@
 
 All code-writing rules for Kotlin projects.
 
+## Table of Contents
+
+- [Indentation & Layout](#indentation--layout)
+- [Language Usage](#language-usage)
+- [Naming Conventions](#naming-conventions)
+- [Blank Lines](#blank-lines)
+- [Single-Expression Functions](#single-expression-functions)
+- [Comments](#comments)
+- [Constants](#constants)
+
 ---
 
 ## Indentation & Layout
