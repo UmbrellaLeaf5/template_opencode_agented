@@ -1,3 +1,6 @@
+indent-width = 2
+line-length = 100
+
 [lint]
 select = ["E", "F", "B", "UP", "RUF", "I"]
 extend-select = ["PL"]
@@ -9,7 +12,6 @@ ignore = [
 
 [format]
 indent-style = "space"
-indent-width = 2
 line-ending = "lf"
 quote-style = "double"
 
