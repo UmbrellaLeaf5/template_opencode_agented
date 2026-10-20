@@ -11,11 +11,9 @@ Below is the commit message template we will follow.
 
 ```
 <type>(<scope>): <subject>
-
-[optional body]
-
-[optional footer]
 ```
+
+**Subject only.** A commit message must be a single line. Never add a body or a footer — no description, issue references, trailers, `Co-authored-by`, or `Signed-off-by` lines. This rule applies to both humans and AI agents.
 
 ### Type (required)
 
@@ -44,30 +42,16 @@ Specifies the module, component, or functional area affected by the commit:
 
 A short, imperative statement summarizing the change.
 
-### Body (optional)
-
-A more detailed description of the change, including the reason for it and possible side effects. Use this section to provide context.
-
-### Footer (optional)
-
-Additional information, such as issue references. You **must** use this section to reference relevant tickets.
-
 ---
 
 ## Examples
 
 ```
 fix(solver): 0 angle velocity in Rolling
-Redefinition of new, Rolling specific, functions from base
-equipment class;
 ```
 
 ```
 feat(api): add pagination support for listings
-
-Implement pageable responses for GET /api/v1/listings
-Add default sorting by creation date descending
-Closes #123
 ```
 
 ```

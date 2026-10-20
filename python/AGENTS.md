@@ -44,6 +44,8 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 - "закоммить"
 - "сделай коммит"
 
+**NEVER write a commit body or a commit footer.** The commit message must be exactly one line: `<type>(<scope>): <subject>`. Do not add a blank line, description, issue references, trailers, or `Co-authored-by`/`Signed-off-by` lines.
+
 **If the user says "обнови AGENTS.md" or similar — this is NOT a commit instruction. Do NOT add or commit files unless told to.**
 
 ## Workflow & Verification Commands
