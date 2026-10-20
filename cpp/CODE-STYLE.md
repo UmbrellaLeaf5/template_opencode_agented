@@ -46,6 +46,8 @@ All code-writing rules for C++ projects.
     throw std::invalid_argument("[Config] Unknown model");
   ```
 
+  When a single-statement `if`/`for` body fits on one line, clang-format collapses it. A multi-line form is kept only when the body cannot fit.
+
 - Prefer `for` for iteration over ranges and collections. Use `while` only when iteration depends on mutable state or complex conditions:
 
   ```cpp
@@ -156,10 +158,10 @@ Examples:
 namespace core {
 
 class SignalHandler {
-public:
+ public:
   void do_step(double dt_s);
 
-private:
+ private:
   double _fading_margin_db = 0.0;
 };
 
@@ -304,8 +306,7 @@ include/myproject/core/shared/Signal.hpp
   ```cpp
   const auto paths = parser.get_paths();
 
-  for (const auto& path : paths)
-    load_source(path);
+  for (const auto& path : paths) load_source(path);
 
   handler.do_first_step();
   ```
@@ -402,8 +403,8 @@ include/myproject/core/shared/Signal.hpp
 - After a long wrapped line — a blank line before the next statement.
 
   ```cpp
-  throw std::invalid_argument("[Handler::init] Invalid config field: field=" +
-                              field_name + ", value=" + value);
+  throw std::invalid_argument(
+    "[Handler::init] Invalid config field: field=" + field_name + ", value=" + value);
 
   handler.do_first_step();
   ```
@@ -422,9 +423,7 @@ include/myproject/core/shared/Signal.hpp
     ```cpp
     // --------------------------------------------------
 
-    DataPoint get_point(const Id& id) const {
-      return _repository.find_by_id(id);
-    }
+    DataPoint get_point(const Id& id) const { return _repository.find_by_id(id); }
     ```
 
   - **Non-trivial methods** — require a full MARK comment:

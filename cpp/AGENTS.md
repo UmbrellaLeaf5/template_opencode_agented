@@ -155,8 +155,7 @@ const double center_freq_hz = json_utils::required<double>(cfg, "/center_freq_hz
 double hz_to_mhz(double freq_hz) {
   if (freq_hz <= 0.0)
     throw std::invalid_argument(
-      "[math::hz_to_mhz] Invalid frequency: freq_hz=" +
-      std::to_string(freq_hz));
+      "[math::hz_to_mhz] Invalid frequency: freq_hz=" + std::to_string(freq_hz));
 
   return freq_hz / 1.0e6;
 }
