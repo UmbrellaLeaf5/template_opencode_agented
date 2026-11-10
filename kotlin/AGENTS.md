@@ -66,18 +66,18 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 
 ### Time limit (HARD REQUIREMENT)
 
-**Every non-interactive bash command MUST complete within 60 seconds.** All non-interactive commands must be invoked through the timeout wrapper with captured output:
+**Every non-interactive bash command MUST complete within 60 seconds.** All non-interactive commands must be invoked through the timeout wrapper:
 
 ```bash
-time-d -c "<your command>"
+time-d "<your command>"
 ```
 
-Use `time-d -c` by default for every non-interactive command. Use plain `time-d` without `-c` only for genuinely interactive commands that require a TTY, such as `vim`, `python -i`, REPLs, or terminal UI tools.
+Use `time-d` for every command. Run genuinely interactive commands that require a TTY, such as `vim`, `python -i`, REPLs, or terminal UI tools, in an interactive terminal session.
 
 For commands that are expected to legitimately take longer than 60 seconds (full builds, full test suites, dependency syncs, large format/lint runs), use an explicit timeout:
 
 ```bash
-time-d -c --sec <seconds> "<your command>"
+time-d --sec <seconds> "<your command>"
 ```
 
 Choose the smallest reasonable timeout for the command. Do not use a longer timeout to hide a hung process.
@@ -96,7 +96,7 @@ time-d --version                       # verify installation
 Run **all** checks in this order — treat errors as blockers:
 
 ```bash
-time-d -c --sec 300 "./gradlew build"
+time-d --sec 300 "./gradlew build"
 ```
 
 ### Mandatory testing
@@ -104,7 +104,7 @@ time-d -c --sec 300 "./gradlew build"
 **Every change must be verified by running the test suite.** No exceptions.
 
 ```bash
-time-d -c --sec 300 "cd app/src/test/python && uv run pytest"
+time-d --sec 300 "cd app/src/test/python && uv run pytest"
 ```
 
 All JVM tests in `./gradlew build` and all pytest integration tests must pass. If any test fails, fix the issue before considering the change complete.
@@ -114,15 +114,15 @@ All JVM tests in `./gradlew build` and all pytest integration tests must pass. I
 ### Start the application
 
 ```bash
-time-d -c --sec 120 "cd .docker/db && docker compose up -d"
+time-d --sec 120 "cd .docker/db && docker compose up -d"
 ```
 
 ```bash
-time-d -c "nohup java -jar app/build/libs/app-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
+time-d "nohup java -jar app/build/libs/app-0.0.1.jar --spring.profiles.active=dev >/dev/null 2>&1 &"
 ```
 
 ```bash
-time-d -c --sec 120 "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/health 2>/dev/null && echo ready && break; sleep 3; done"
+time-d --sec 120 "for i in $(seq 1 30); do curl -s -o /dev/null http://localhost:8080/api/health 2>/dev/null && echo ready && break; sleep 3; done"
 ```
 
 ### Stop the application
@@ -130,7 +130,7 @@ time-d -c --sec 120 "for i in $(seq 1 30); do curl -s -o /dev/null http://localh
 **Always kill the server when done — do not leave it running indefinitely.**
 
 ```bash
-time-d -c "for pid in \$(netstat -ano 2>/dev/null | grep ':8080.*LISTENING' | awk '{print \$NF}'); do taskkill -F -PID \$pid 2>/dev/null; done && echo port free"
+time-d "for pid in \$(netstat -ano 2>/dev/null | grep ':8080.*LISTENING' | awk '{print \$NF}'); do taskkill -F -PID \$pid 2>/dev/null; done && echo port free"
 ```
 
 Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkill` command above.
@@ -138,7 +138,7 @@ Note: `pkill -f bootRun` does **not** reliably work on Windows. Use the `taskkil
 ### Setup
 
 ```bash
-time-d -c --sec 300 "./gradlew build"
+time-d --sec 300 "./gradlew build"
 ```
 
 This downloads dependencies and builds the project. For IDE: IntelliJ IDEA with Kotlin plugin is recommended. Open the project root directory and let Gradle sync.
@@ -477,18 +477,18 @@ If using an ORM (e.g., JPA/Hibernate):
 - Use **JUnit 5** (`@Test`, `@DisplayName`) for unit tests.
 - Tests live in `src/test/kotlin/` mirroring the main source structure.
 - Test file naming: `<Class>Test.kt`.
-- Run unit tests via `time-d -c --sec 300 "./gradlew test"`.
+- Run unit tests via `time-d --sec 300 "./gradlew test"`.
 
 ### Integration Tests
 
 - Place integration tests in `src/test/kotlin/` with `@Tag("integration")` or under `integration/` package.
 - Use **Testcontainers** or **Spring Boot Test** for integration tests.
-- Run integration tests: `time-d -c --sec 300 "./gradlew test -DincludeTags=\"integration\""`.
+- Run integration tests: `time-d --sec 300 "./gradlew test -DincludeTags=\"integration\""`.
 
 ### Coverage
 
 - Aim for high coverage of core business logic. Use **Jacoco** or **Kover** to measure coverage.
-- Run coverage report: `time-d -c --sec 300 "./gradlew test jacocoTestReport"` (or `time-d -c --sec 300 "./gradlew koverReport"`).
+- Run coverage report: `time-d --sec 300 "./gradlew test jacocoTestReport"` (or `time-d --sec 300 "./gradlew koverReport"`).
 
 ## Environment & Configuration
 

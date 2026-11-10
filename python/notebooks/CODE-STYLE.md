@@ -27,14 +27,14 @@ All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This fil
 - Notebook code cells follow the same formatting rules as regular Python files. Format notebooks with Ruff before considering the work complete:
 
   ```bash
-  time-d -c "ruff format ."
-  time-d -c "ruff check ."
+  time-d "ruff format ."
+  time-d "ruff check ."
   ```
 
 - Execute notebooks with `nbconvert` to verify that outputs are reproducible from a clean kernel:
 
   ```bash
-  time-d -c --sec 300 "jupyter nbconvert --to notebook --execute notebooks/example.ipynb --inplace"
+  time-d --sec 300 "jupyter nbconvert --to notebook --execute notebooks/example.ipynb --inplace"
   ```
 
 - Keep cells short and purpose-specific. A cell should load data, configure a plot, render a plot, or explain a result - not mix all of these responsibilities.
@@ -253,14 +253,14 @@ All rules from `../CODE-STYLE.md` apply to notebook code cells as well. This fil
 - Run Ruff on notebooks and utility modules after every notebook change:
 
   ```bash
-  time-d -c "ruff format ."
-  time-d -c "ruff check ."
+  time-d "ruff format ."
+  time-d "ruff check ."
   ```
 
 - Execute changed notebooks with `nbconvert` from a clean kernel:
 
   ```bash
-  time-d -c --sec 300 "jupyter nbconvert --to notebook --execute notebooks/example.ipynb --inplace"
+  time-d --sec 300 "jupyter nbconvert --to notebook --execute notebooks/example.ipynb --inplace"
   ```
 
 - Do not clear notebook outputs before committing. If the project keeps notebook outputs under version control, verify that updated outputs are intentional and reproducible. Clear only stale crash outputs or accidental noisy outputs.
