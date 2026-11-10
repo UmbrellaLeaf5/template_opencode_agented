@@ -58,6 +58,8 @@ If the user asks "what should the commit message be?" — **suggest a message bu
 
 **NEVER write a commit body or a commit footer.** The commit message must be exactly one line: `<type>(<scope>): <subject>`. Do not add a blank line, description, issue references, trailers, or `Co-authored-by`/`Signed-off-by` lines.
 
+**NEVER create, edit, rename, move, or delete Helm or CI/CD files.** This includes Helm charts, values, templates, lock files, and CI/CD pipeline, workflow, build, release, or deployment configuration (such as GitHub Actions, GitLab CI, Jenkins, Azure Pipelines, and CircleCI). Do not modify these files incidentally during another task. If a request depends on changing them, leave them untouched and report the restriction.
+
 **If the user says "обнови AGENTS.md" or similar — this is NOT a commit instruction. Do NOT add or commit files unless told to.**
 
 ## Workflow & Verification Commands
