@@ -25,6 +25,8 @@ _Instruction for Agent:_ If you haven't read `./CODE-STYLE.md` in the current se
 
 ## Operational Rules & Critical Restrictions
 
+**BASH-COMPATIBLE SHELL ONLY — including on Windows.** Run commands through Bash (for example, Git Bash, MSYS2 Bash, or WSL Bash). NEVER use PowerShell (`powershell`, `pwsh`, `.ps1` scripts, cmdlets, or PowerShell operators) or `cmd.exe`/batch syntax. Use Bash syntax and utilities; invoke a Windows executable from Bash only when no Bash equivalent is available, and never switch shells.
+
 **UNDER NO CIRCUMSTANCES may you commit, push, amend, rebase, or modify the git history without an EXPLICIT instruction to do so.** This is the most important rule in this document. Violating it may result in lost work and broken branches.
 
 This specifically includes:
