@@ -9,6 +9,7 @@ import os
 import pytest
 import typer
 from dataclasses import dataclass
+from math import pi
 from pydantic import BaseModel
 
 
@@ -216,7 +217,7 @@ def find_distance(a: Point, b: Point, max_radius: float) -> bool:
   result = compute()
 
   if result is None:
-    return
+    return False
 
   for item in items:
     process(item)
@@ -384,37 +385,32 @@ class UserService:
 
 
 # CODE-STYLE.md: constants
-class Math:
-  EARTH_RADIUS_M: float = 6_371_000.0
-  DEG_TO_RAD: float = pi / 180.0
+class Constants:
+  class Math:
+    EARTH_RADIUS_M: float = 6_371_000.0
+    DEG_TO_RAD: float = pi / 180.0
+
+  # --------------------------------------------------
+
+  class Entity:
+    USER = "User"
+    ORDER = "Order"
+    PRODUCT = "Product"
+
+  # --------------------------------------------------
+
+  class Validation:
+    INVALID_EMAIL = "Invalid email format"
+    REQUIRED_FIELD = "Required field is missing"
+
+  # --------------------------------------------------
+
+  class Pattern:
+    UUID_RE = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 
 
-# --------------------------------------------------
-
-
-class Entity:
-  USER = "User"
-  ORDER = "Order"
-  PRODUCT = "Product"
-
-
-# --------------------------------------------------
-
-
-class Validation:
-  INVALID_EMAIL = "Invalid email format"
-  REQUIRED_FIELD = "Required field is missing"
-
-
-# --------------------------------------------------
-
-
-class Pattern:
-  UUID_RE = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
-
-
-earth_r = Math.EARTH_RADIUS_M
-entity_user = Entity.USER
+earth_r = Constants.Math.EARTH_RADIUS_M
+entity_user = Constants.Entity.USER
 
 
 # CODE-STYLE.md: pytest fixture, parametrized and skipped tests
@@ -452,10 +448,10 @@ app = typer.Typer()
 
 
 @app.command()
-def process(file: str):
+def process(file: Path) -> None:
   """Process a file."""
   result = service.process(file)
-  print(result)
+  logger.info("%s", result)
 
 
 # AGENTS.md: custom exception hierarchy

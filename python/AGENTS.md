@@ -162,18 +162,22 @@ src/myproject/
 
 ```python
 # src/myproject/cli/main.py
+import logging
+from pathlib import Path
+
 import typer
 
 
 app = typer.Typer()
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------
 
 @app.command()
-def process(file: str):
+def process(file: Path) -> None:
   """Process a file."""
   result = service.process(file)
-  print(result)
+  logger.info("%s", result)
 ```
 
 ### Exceptions

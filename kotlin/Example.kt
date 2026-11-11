@@ -71,7 +71,7 @@ fun castKnownType(obj: Any): Point {
 }
 
 // CODE-STYLE.md: scoping function chain
-fun getUser(userIdString: String): UserResponse =
+fun getUser(userIdString: String) =
   userRepository
     .findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
     .also { logger.debug("Fetching User: {}", userIdString) }
@@ -144,7 +144,7 @@ private fun calculateInteractionTime(
 // MARK: Private Helpers
 // --------------------------------------------------
 
-private fun buildResponse(input: Any): Response = TODO()
+private fun buildResponse(input: Any) = TODO()
 
 // CODE-STYLE.md: class member spacing
 @Service
@@ -215,9 +215,11 @@ fun buildState(status: OrderStatus): State {
   if (status == OrderStatus.COMPLETED) {
     return buildTerminalState(input)
   }
+
   else if (status == OrderStatus.IMPOSSIBLE) {
     return buildTerminalState(input)
   }
+
   else {
     return buildActiveState(input)
   }
@@ -228,10 +230,12 @@ fun buildStateWithBlocks(status: OrderStatus): State {
     log.info("Order {} completed", orderId)
     return buildTerminalState(input)
   }
+
   else if (status == OrderStatus.IMPOSSIBLE) {
     log.warn("Order {} impossible", orderId)
     return buildTerminalState(input)
   }
+
   else {
     log.debug("Order {} active", orderId)
     return buildActiveState(input)
@@ -242,7 +246,9 @@ fun buildStateWithBlocks(status: OrderStatus): State {
 fun loadProcessor() {
   try {
     processor.loadState()
-  } catch (e: Exception) {
+  }
+
+  catch (e: Exception) {
     log.warn("Failed to load state, starting fresh")
   }
 }
@@ -279,7 +285,7 @@ fun processData() {
 fun multiply(
   a: Int,
   b: Int,
-): Int = a * b
+) = a * b
 
 fun showMessage(text: String) = println(text)
 
@@ -292,7 +298,7 @@ fun multiplyWithoutReturnType(
 // CODE-STYLE.md: trivial method
 // --------------------------------------------------
 
-fun getUser(id: UUID): UserResponse =
+fun getUser(id: UUID) =
   userRepository.findByIdOrThrow(id).let { mapper.toResponse(it) }
 
 // CODE-STYLE.md: non-trivial method
@@ -364,17 +370,17 @@ fun calculateAndPersist(
 // --------------------------------------------------
 
 @Transactional
-fun calculate(time: Instant): OrderResponse = TODO()
+fun calculate(time: Instant) = TODO()
 
 // MARK: Private Helpers
 // --------------------------------------------------
 
-private fun buildResponse(input: Any): Response = TODO()
+private fun buildResponse(input: Any) = TODO()
 
 // MARK: Reuse existing context
 // --------------------------------------------------
 
-private fun reuseContext(request: CalculationRequest): CalculationPlan? = TODO()
+private fun reuseContext(request: CalculationRequest) = TODO()
 
 // CODE-STYLE.md: constructor parameter groups
 class UserService(
@@ -431,7 +437,7 @@ object Constants {
 override fun getItem(
   @RequestParam("user_id") userIdString: String,
   @PathVariable("item_id") itemIdString: String,
-): ItemResponse = itemService.getItem(userIdString, itemIdString)
+) = itemService.getItem(userIdString, itemIdString)
 
 // AGENTS.md: early conversion to strongly typed values
 fun getItem(
@@ -572,9 +578,8 @@ class OrderMapper {
 }
 
 // AGENTS.md: mapper use in service
-fun getUser(userIdString: String): UserResponse =
-  userRepository
-    .findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
+fun getUser(userIdString: String) =
+  userRepository.findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
     .let { userMapper.toResponse(it) }
 
 // --------------------------------------------------

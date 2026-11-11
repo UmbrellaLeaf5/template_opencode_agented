@@ -194,12 +194,14 @@ This downloads dependencies and builds the project. For IDE: IntelliJ IDEA with 
   override fun getItem(
     @RequestParam("user_id") userIdString: String,
     @PathVariable("item_id") itemIdString: String,
-  ): ItemResponse = itemService.getItem(userIdString, itemIdString)
+  ) = itemService.getItem(userIdString, itemIdString)
   ```
 
 - **Service layer**: service method parameters that receive raw `String` values from the controller **must also use the `*String` suffix**, matching the controller naming exactly.
 
-- **Strict typing**: immediately at the start of every service method that receives `String` parameters, **cast every String to its proper type** (UUID, Double, Instant, etc.) using conversion functions. After the initial conversion block, **no raw String arguments should remain in scope** — work exclusively with strongly-typed values.
+- **Strict typing**: at the start of every block-body service method that receives `String` parameters, **cast every String to its proper type** (UUID, Double, Instant, etc.) using conversion functions. After the initial conversion block, **no raw String arguments should remain in scope** — work exclusively with strongly-typed values.
+
+- **Expression-body service methods** may keep conversions inline in the expression chain. Do not expand a concise expression-body method solely to create local variables for intermediate conversions; raw string parameters may also be used by a logging step in that chain.
 
   ```kotlin
   fun getItem(
@@ -426,7 +428,7 @@ class OrderMapper {
 
 ```kotlin
 // Service reads an entity and hands it to the mapper:
-fun getUser(userIdString: String): UserResponse =
+fun getUser(userIdString: String) =
   userRepository.findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
     .let { userMapper.toResponse(it) }
 

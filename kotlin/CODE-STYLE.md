@@ -126,7 +126,7 @@ All code-writing rules for Kotlin projects.
 
     ```kotlin
     // Good — clean transformation chain
-    fun getUser(userIdString: String): UserResponse =
+    fun getUser(userIdString: String) =
       userRepository.findByIdOrThrow(userIdString.toUUIDOrThrow(), Constants.Entity.USER)
         .also { logger.debug("Fetching User: {}", userIdString) }
         .let { userMapper.toResponse(it) }
@@ -398,22 +398,16 @@ All code-writing rules for Kotlin projects.
 ## Single-Expression Functions
 
 - If a function body consists of a single expression, use expression body (`=`) instead of block body (`{}`).
-- When the function returns a value, the return type **must** be specified explicitly:
+- For expression-body functions, Kotlin infers the return type from the expression. Do not add a redundant explicit return type.
 
   ```kotlin
-  fun multiply(a: Int, b: Int): Int = a * b
+  fun multiply(a: Int, b: Int) = a * b
   ```
 
 - When the function returns `Unit`, omit the return type:
 
   ```kotlin
   fun showMessage(text: String) = println(text)
-  ```
-
-- **Invalid** — omitting the return type for a value-returning function:
-
-  ```kotlin
-  fun multiply(a: Int, b: Int) = a * b  // WRONG — no explicit return type
   ```
 
 - Single-expression functions must not use `return`. The expression body (`=`) replaces the need for `return`.
@@ -428,7 +422,7 @@ All code-writing rules for Kotlin projects.
     ```kotlin
     // --------------------------------------------------
 
-    fun getUser(id: UUID): UserResponse =
+    fun getUser(id: UUID) =
       userRepository.findByIdOrThrow(id).let { mapper.toResponse(it) }
     ```
 

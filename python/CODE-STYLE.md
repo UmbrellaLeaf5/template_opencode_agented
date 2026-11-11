@@ -621,10 +621,11 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     Returns:
       CalculationState: результирующее состояние
     """
+
     ...
   ```
 
-  The docstring block is separated from the MARK/separator by one blank line (the docstring indentation already provides it) and sits directly above the function body with no blank line between docstring closing `"""` and the first statement — if a blank line is needed, place it _after_ the docstring, before the first line of code.
+  The docstring block is separated from the MARK/separator by one blank line and sits directly above the function body. Put exactly one blank line between the closing `"""` and the first statement, as required by the blank-line rules.
 
 - **Trivial / self-documenting functions** may omit the docstring when:
   - The name fully describes the purpose.
@@ -687,37 +688,38 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 # myproject/constants.py
 from math import pi
 
-class Math:
-  EARTH_RADIUS_M: float = 6_371_000.0
-  DEG_TO_RAD: float = pi / 180.0
+class Constants:
+  class Math:
+    EARTH_RADIUS_M: float = 6_371_000.0
+    DEG_TO_RAD: float = pi / 180.0
 
-# --------------------------------------------------
+  # --------------------------------------------------
 
-class Entity:
-  USER = "User"
-  ORDER = "Order"
-  PRODUCT = "Product"
+  class Entity:
+    USER = "User"
+    ORDER = "Order"
+    PRODUCT = "Product"
 
-# --------------------------------------------------
+  # --------------------------------------------------
 
-class Validation:
-  INVALID_EMAIL = "Invalid email format"
-  REQUIRED_FIELD = "Required field is missing"
+  class Validation:
+    INVALID_EMAIL = "Invalid email format"
+    REQUIRED_FIELD = "Required field is missing"
 
-# --------------------------------------------------
+  # --------------------------------------------------
 
-class Pattern:
-  UUID_RE = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+  class Pattern:
+    UUID_RE = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 ```
 
 Usage:
 
 ```python
-from myproject.constants import Math, Entity
+from myproject.constants import Constants
 
 
-earth_r = Math.EARTH_RADIUS_M
-entity_user = Entity.USER
+earth_r = Constants.Math.EARTH_RADIUS_M
+entity_user = Constants.Entity.USER
 ```
 
 ## Testing
@@ -744,12 +746,12 @@ def sample_user() -> User:
   ("Alice", True),
   ("", False),
 ])
-def test_validate_name(name: str, valid: bool):
+def test_validate_name(name: str, valid: bool) -> None:
   assert User.is_valid_name(name) == valid
 
 # --------------------------------------------------
 
 @pytest.mark.skipif(not os.getenv("CI"), reason="Requires external service")
-def test_external_api():
+def test_external_api() -> None:
   ...
 ```
