@@ -262,7 +262,8 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
 - **2 blank lines** after the last import.
 - **1 blank line** between member methods inside a class.
 
-- **Important:** Blank line rules may overlap. When multiple rules require a blank line at the same position, use exactly **one blank line**. Never use two or more consecutive blank lines.
+- **Two blank lines are allowed only** (1) after the last import and (2) between top-level code blocks. In the second case, this includes both sides of a separator or MARK comment.
+- Everywhere else, use at most **one blank line**. When multiple rules require a blank line at the same position, use exactly one.
 
   Blank line **needed** — when switching between different variables / logical groups:
 
@@ -352,24 +353,29 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     ...
   ```
 
-- **1 blank line** after class header between `__init__` parameters and the first method.
+- **1 blank line** after the class header before its first method. Keep one blank line between `__init__` and the next method.
 
   ```python
-  @dataclass
-  class CalculationService(
-    # repositories:
-    item_repository: ItemRepository,
-    result_repository: ResultRepository,
-
-    # services:
-    state_service: StateService,
-    persistence_service: PersistenceService,
-  ):
+  class CalculationService:
+    def __init__(
+      self,
+      # repositories:
+      item_repository: ItemRepository,
+      result_repository: ResultRepository,
+      # services:
+      state_service: StateService,
+      persistence_service: PersistenceService,
+    ) -> None:
+      self._item_repository = item_repository
+      self._result_repository = result_repository
+      self._state_service = state_service
+      self._persistence_service = persistence_service
 
     # MARK: Calculate and persist
     # --------------------------------------------------
 
     def calculate_and_persist(
+      self,
       entity: OrderEntity,
       item: ItemEntity | None,
       time: datetime,
@@ -377,7 +383,7 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
       ...
   ```
 
-  **Note:** The blank line after the class header is the required 1 blank line. The MARK comment follows immediately after it. These blank lines between `__init__`/class param groups are mandatory. When blank line rules overlap, use only one blank line.
+  **Note:** `__init__` receives the dependencies and stores them in private fields. Category comments distinguish constructor parameter groups; Ruff removes blank lines inside parameter lists. Keep one blank line between methods.
 
 - **Blank line before control flow** — insert a blank line before every `if`, `elif`, `else`, `for`, `while`, `try`, `except`, `finally`, `with`, `raise`, `assert`, `return`, `continue` that sits at the same indentation level as its containing block.
 
@@ -646,19 +652,16 @@ __all__ = ["UserService", "OrderService", "User", "Order"]
     a_db: float = 0.0   # relative attenuation, dB
   ```
 
-- Constructor parameters must be grouped with category comments:
+- Constructor parameters must be grouped with category comments. Do not add blank lines inside the parameter list; Ruff removes them when formatting.
 
   ```python
   class UserService:
     def __init__(
       self,
-
       # repositories:
       user_repository: UserRepository,
-
       # mappers:
       user_mapper: UserMapper,
-
       # services:
       notification_service: NotificationService,
     ) -> None:

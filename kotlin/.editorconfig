@@ -15,6 +15,9 @@ ij_kotlin_name_count_to_use_star_import = 5
 ij_kotlin_name_count_to_use_star_import_for_members = 3
 ij_kotlin_blank_lines_after_class_header = 1
 ij_kotlin_blank_lines_around_block_when_branches = 1
+ij_any_else_on_new_line = true
+ij_any_if_brace_force = never
+ij_formatter_tags_enabled = true
 ij_kotlin_imports_layout = *, java.**, javax.**, kotlin.**, ^
 ij_kotlin_blank_lines_before_declaration_with_comment_or_annotation_on_separate_line = 1
 ij_kotlin_call_parameters_new_line_after_left_paren = true
@@ -30,6 +33,10 @@ ij_kotlin_spaces_around_equality_operators = true
 ij_kotlin_spaces_around_additive_operators = true
 ij_kotlin_spaces_around_multiplicative_operators = true
 ij_kotlin_spaces_around_relational_operators = true
+ktlint_standard_multiline-if-else = disabled
+ktlint_standard_if-else-bracing = disabled
+ktlint_standard_keyword-spacing = disabled
+ktlint_standard_no-empty-first-line-in-class-body = disabled
 
 [*.yml]
 indent_size = 2

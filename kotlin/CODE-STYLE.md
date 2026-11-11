@@ -25,7 +25,7 @@ All code-writing rules for Kotlin projects.
     arg1: String,
     arg2: Int,
   ): ReturnType {
-      // ...
+    // ...
   }
   ```
 
