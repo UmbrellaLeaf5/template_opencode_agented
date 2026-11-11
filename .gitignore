@@ -1,0 +1,6 @@
+.vscode/
+.playwright*/
+
+# Temporary files
+temp.*
+
