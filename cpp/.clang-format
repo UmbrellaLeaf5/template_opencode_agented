@@ -1,23 +1,11 @@
 Language: Cpp
 BasedOnStyle: Google
-IndentWidth: 2
-TabWidth: 2
-UseTab: Never
+
+AlignArrayOfStructures: Left
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortFunctionsOnASingleLine: Inline
+BreakBeforeBinaryOperators: NonAssignment
+BreakConstructorInitializers: BeforeColon
 ColumnLimit: 100
 ContinuationIndentWidth: 2
-AlignAfterOpenBracket: DontAlign
-AccessModifierOffset: -1
-BreakBeforeBraces: Custom
-BraceWrapping:
-  BeforeCatch: true
-AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: WithoutElse
-AllowShortLoopsOnASingleLine: true
-PointerAlignment: Left
-DerivePointerAlignment: false
-NamespaceIndentation: None
-FixNamespaceComments: true
-SortIncludes: CaseSensitive
-SpacesBeforeTrailingComments: 2
-ReflowComments: false
-SpaceBeforeParens: ControlStatements
+ReflowComments: Never
